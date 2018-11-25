@@ -1,6 +1,9 @@
 # Prerequisites
 *.d
 
+#Local resources
+local_resources/
+
 #Intellij & CLion
 .idea/
 

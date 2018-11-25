@@ -18,9 +18,12 @@
 
 const int MAX_WARMUP_FRAMES = 100;
 
-const char quitKey = 'q';
+const char QUIT_KEY = 'q';
+const char SCREENSHOT_KEY = 's';
+const std::string DEV_DIRECTORY = "C:/Users/jason/Desktop/Code/lidar-slam-dunk/local_resources/";
 
 void printStartupInfo();
+void grabScreenshot(cv::Mat colorScreen);
 
 int main() 
 {
@@ -92,43 +95,33 @@ int main()
 		if (SUCCEEDED(hr)) 
 		{
 			pColorFrame->get_RawColorImageFormat(&imageFormat);
-			if (imageFormat == ColorImageFormat_Yuy2) 
-			{
-				hr = pColorFrame->CopyConvertedFrameDataToArray(bufferSize, reinterpret_cast<BYTE*>(bufferMat.data), ColorImageFormat::ColorImageFormat_Bgra);
-				cv::resize(bufferMat, colorMat, cv::Size(), 0.5, 0.5);
-				cv::imshow("Kinect_Color", colorMat);
+			assert(imageFormat == ColorImageFormat_Yuy2);
+			
+			hr = pColorFrame->CopyConvertedFrameDataToArray(bufferSize, reinterpret_cast<BYTE*>(bufferMat.data), ColorImageFormat::ColorImageFormat_Bgra);
+			cv::resize(bufferMat, colorMat, cv::Size(), 0.5, 0.5);
+			cv::imshow("Kinect_Color", colorMat);
 
-				SafeRelease(pColorFrame);
-				char waitKey = cv::waitKey(30);
-				
-				if (waitKey == 'q')
-				{
-					break;
-				}
-			}
-			else 
-			{
-				std::cout << "HR8." << warmup_frames << ":\t" << "ERRROROROROROROR" << std::endl;
-			}
+			SafeRelease(pColorFrame);
+			char waitKey = cv::waitKey(30);
+			if (waitKey == QUIT_KEY)
+				break;
+			else if (waitKey == SCREENSHOT_KEY)
+				grabScreenshot(colorMat);
+			
 		}
 		else
 		{
 			std::cout << "HR6." << warmup_frames << ":\t Waiting for Kinect to start up" << SUCCEEDED(hr) << std::endl;
 			warmup_frames++;
 		}
-
-		Sleep(60);
-
+		Sleep(50); // Sleep for Kinect frame limitations
 	}
-
-
 
 	if (pKinectSensor) 
 	{
 		pKinectSensor->Close();
 	}
 	SafeRelease(pKinectSensor);
-
 
 	return 0;
 }
@@ -137,6 +130,24 @@ void printStartupInfo()
 {
 	std::cout << "Hello, World Kinect Recording!" << std::endl;
 	std::cout << "Hotkey reference:" << std::endl;
-	std::cout << "\tQuit Program: " << quitKey << std::endl;
+	std::cout << "\tQuit Program: " << QUIT_KEY << std::endl;
+	std::cout << "\tSave Screenshots: " << SCREENSHOT_KEY << std::endl;
 	std::cout << "\n" << std::endl;
+}
+
+void grabScreenshot(cv::Mat colorScreen)
+{
+	time_t rawtime;
+	struct tm * timeinfo;
+	char buffer[80];
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+	strftime(buffer, 80, "%Y_%m_%d_%H_%M_%S", timeinfo);
+
+	std::string filename = DEV_DIRECTORY;
+	filename.append("Color_");
+	filename.append(buffer);
+	filename.append(".jpg");
+
+	imwrite(filename, colorScreen);
 }
