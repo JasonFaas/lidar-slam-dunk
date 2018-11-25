@@ -1,6 +1,12 @@
 # Prerequisites
 *.d
 
+#Intellij & CLion
+.idea/
+
+#Visual Studio
+.vs/
+
 # Compiled Object files
 *.slo
 *.lo
