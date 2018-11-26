@@ -13,10 +13,16 @@
 
 #include <opencv2/opencv.hpp>
 
-//const int cColorWidth = 1920;
-//const int cColorHeight = 1080;
+const int COLOR_WIDTH = 1920;
+const int COLOR_HEIGHT = 1080;
+const int DEPTH_WIDTH = 512;
+const int DEPTH_HEIGHT = 424;
+const UINT DEPTH_IMG_SIZE = DEPTH_WIDTH * DEPTH_HEIGHT;
+const int DEPTH_MAX_DEPTH = 4500;
+const int DEPTH_MIN_DEPTH = 500;
 
-const int MAX_WARMUP_FRAMES = 100;
+
+const int MAX_WARMUP_FRAMES = 40;
 
 const char QUIT_KEY = 'q';
 const char SCREENSHOT_KEY = 's';
@@ -24,104 +30,118 @@ const std::string DEV_DIRECTORY = "C:/Users/jason/Desktop/Code/lidar-slam-dunk/l
 
 void printStartupInfo();
 void grabScreenshot(cv::Mat colorScreen);
+void deptyByteArrToMat(UINT16* pixelData, cv::Mat depthMat);
 
-int main() 
+int main()
 {
 	printStartupInfo();
 
-	IKinectSensor* pKinectSensor = NULL;
+	IKinectSensor* kinectSensor = NULL;
+	IMultiSourceFrameReader* reader = NULL;
 
 	//InitializeDefaultSensor
-	HRESULT hr = GetDefaultKinectSensor(&pKinectSensor);
+	HRESULT hr = GetDefaultKinectSensor(&kinectSensor);
 	std::cout << "HR1:\t" << SUCCEEDED(hr) << std::endl;
 
-	hr = pKinectSensor->Open();
+	hr = kinectSensor->OpenMultiSourceFrameReader(
+		FrameSourceTypes::FrameSourceTypes_Depth | FrameSourceTypes::FrameSourceTypes_Color,
+		&reader
+	);
+
+	hr = kinectSensor->Open();
 	std::cout << "HR2:\t" << SUCCEEDED(hr) << std::endl;
 
 	BOOLEAN isAvailable = NULL;
-
 	int warmup_frames = 0;
-	while (warmup_frames++ < MAX_WARMUP_FRAMES) 
+	while (warmup_frames++ < MAX_WARMUP_FRAMES)
 	{
-		pKinectSensor->get_IsAvailable(&isAvailable);
-		if ((bool)isAvailable) 
+		kinectSensor->get_IsAvailable(&isAvailable);
+		if ((bool)isAvailable)
 		{
 			std::cout << "HR2." << warmup_frames << ":\t" << "Available!!!" << std::endl;
 			break;
 		}
-		else 
+		else
 		{
 			std::cout << "HR2." << warmup_frames << ":\t" << "Not Available" << std::endl;
 			Sleep(100);
 		}
 	}
 
-
-	IColorFrameSource* pColorFrameSource = NULL;
-	hr = pKinectSensor->get_ColorFrameSource(&pColorFrameSource);
-	std::cout << "HR3:\t" << SUCCEEDED(hr) << std::endl;
-
-	IColorFrameReader* pColorFrameReader = NULL;
-	hr = pColorFrameSource->OpenReader(&pColorFrameReader);
-	std::cout << "HR4:\t" << SUCCEEDED(hr) << std::endl;
-	//SafeRelease(pColorFrameSource); TODO release later
-	bool otherBool = pColorFrameReader;
-	std::cout << "Other:\t" << otherBool << std::endl;
-
-
-	IFrameDescription* pFrameDescription = NULL;
-	hr = pColorFrameSource->get_FrameDescription(&pFrameDescription);
-	std::cout << "HR5:\t" << SUCCEEDED(hr) << std::endl;
-
-	int nWidth = 0;
-	int nHeight = 0;
-	hr = pFrameDescription->get_Width(&nWidth);
-	hr = pFrameDescription->get_Height(&nHeight);
-	std::cout << "Heigh-Width:\t" << nWidth << "--" << nHeight << std::endl;
-
-
-	cv::Mat bufferMat(nHeight, nWidth, CV_8UC4);
-	cv::Mat colorMat(nHeight / 2, nWidth / 2, CV_8UC4);
-	unsigned int bufferSize = nWidth * nHeight * 4 * sizeof(unsigned char);
+	cv::Mat colorBufferMat(COLOR_HEIGHT, COLOR_WIDTH, CV_8UC4);
+	cv::Mat colorSmallMat(COLOR_HEIGHT / 2, COLOR_WIDTH / 2, CV_8UC4);
+	unsigned int colorBufferSize = COLOR_HEIGHT * COLOR_WIDTH * 4 * sizeof(unsigned char);
 	cv::namedWindow("Kinect_Color");
 
-	IColorFrame* pColorFrame = NULL;
+	cv::Mat depthBufferMat(DEPTH_HEIGHT, DEPTH_WIDTH, CV_8UC1);
+	unsigned int depthBufferSize = DEPTH_HEIGHT * DEPTH_WIDTH * 1 * sizeof(unsigned char);
+	UINT16 pixelData[DEPTH_IMG_SIZE];
+	cv::namedWindow("Kinect_Depth");
+
+	IMultiSourceFrame* multiFrame = NULL;
 	ColorImageFormat imageFormat = ColorImageFormat_None;
+
 	while (warmup_frames < MAX_WARMUP_FRAMES)
 	{
-		pColorFrame = NULL;
-		hr = pColorFrameReader->AcquireLatestFrame(&pColorFrame);
-		
-		if (SUCCEEDED(hr)) 
-		{
-			pColorFrame->get_RawColorImageFormat(&imageFormat);
-			assert(imageFormat == ColorImageFormat_Yuy2);
-			
-			hr = pColorFrame->CopyConvertedFrameDataToArray(bufferSize, reinterpret_cast<BYTE*>(bufferMat.data), ColorImageFormat::ColorImageFormat_Bgra);
-			cv::resize(bufferMat, colorMat, cv::Size(), 0.5, 0.5);
-			cv::imshow("Kinect_Color", colorMat);
+		multiFrame = NULL;
+		hr = reader->AcquireLatestFrame(&multiFrame);
 
-			SafeRelease(pColorFrame);
+		if (SUCCEEDED(hr))
+		{
+			std::cout << "HR5." << warmup_frames << ":\t WarmupFrameStatus" << std::endl;
+
+			IDepthFrame* depthFrame = NULL;
+			IDepthFrameReference* depthFrameReference = NULL;
+			multiFrame->get_DepthFrameReference(&depthFrameReference);
+			depthFrameReference->AcquireFrame(&depthFrame);
+			if (depthFrame)
+			{
+				hr = depthFrame->CopyFrameDataToArray(DEPTH_IMG_SIZE, pixelData);
+				deptyByteArrToMat(pixelData, depthBufferMat);
+				cv::imshow("Kinect_Depth", depthBufferMat);
+
+				// Color Frame loading - this syncs the slower depth frame with the faster color frame
+				IColorFrame* colorFrame = NULL;
+				IColorFrameReference* colorFrameReference = NULL;
+				multiFrame->get_ColorFrameReference(&colorFrameReference);
+				colorFrameReference->AcquireFrame(&colorFrame);
+				colorFrame->get_RawColorImageFormat(&imageFormat);
+				assert(imageFormat == ColorImageFormat_Yuy2);
+
+				hr = colorFrame->CopyConvertedFrameDataToArray(colorBufferSize, reinterpret_cast<BYTE*>(colorBufferMat.data), ColorImageFormat::ColorImageFormat_Bgra);
+				cv::resize(colorBufferMat, colorSmallMat, cv::Size(), 0.5, 0.5);
+				cv::imshow("Kinect_Color", colorSmallMat);
+
+				SafeRelease(colorFrame);
+				SafeRelease(colorFrameReference);
+			}
+			else
+			{
+				warmup_frames++;
+			}
+			SafeRelease(depthFrameReference);
+			SafeRelease(depthFrame);
+
 			char waitKey = cv::waitKey(30);
 			if (waitKey == QUIT_KEY)
 				break;
 			else if (waitKey == SCREENSHOT_KEY)
-				grabScreenshot(colorMat);
-			
+				grabScreenshot(colorSmallMat);
 		}
 		else
 		{
 			std::cout << "HR6." << warmup_frames << ":\t Waiting for Kinect to start up" << SUCCEEDED(hr) << std::endl;
-			warmup_frames++;
 		}
-		Sleep(50); // Sleep for Kinect frame limitations
+		SafeRelease(multiFrame);
+		Sleep(200); // Sleep for Kinect frame limitations
 	}
 
-	if (pKinectSensor) 
+	SafeRelease(multiFrame);
+	if (kinectSensor)
 	{
-		pKinectSensor->Close();
+		kinectSensor->Close();
 	}
-	SafeRelease(pKinectSensor);
+	SafeRelease(kinectSensor);
 
 	return 0;
 }
@@ -151,3 +171,15 @@ void grabScreenshot(cv::Mat colorScreen)
 
 	imwrite(filename, colorScreen);
 }
+
+void deptyByteArrToMat(UINT16* pixelData, cv::Mat depthMat)
+{
+	int straightPixelPoint = 0;
+	for (int k = 0; k < DEPTH_HEIGHT; k++) {
+		for (int m = 0; m < DEPTH_WIDTH; m++) {
+			depthMat.at<uchar>(k, m) = std::min(250, pixelData[straightPixelPoint] / 18);
+			straightPixelPoint++;
+		}
+	}
+}
+
