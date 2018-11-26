@@ -13,6 +13,14 @@
 
 #include <opencv2/opencv.hpp>
 
+
+//
+//#include <windows.h>
+#include <ppl.h>
+//#include <iostream>
+//#include <algorithm>
+//#include <array>
+
 const int COLOR_WIDTH = 1920;
 const int COLOR_HEIGHT = 1080;
 const int DEPTH_WIDTH = 512;
@@ -22,6 +30,9 @@ const int DEPTH_MAX_DEPTH = 4500;
 const int DEPTH_MIN_DEPTH = 500;
 
 
+std::vector<int> DEPTH_IMG_SIZE_VECTOR(DEPTH_IMG_SIZE);
+
+
 const int MAX_WARMUP_FRAMES = 40;
 
 const char QUIT_KEY = 'q';
@@ -29,11 +40,14 @@ const char SCREENSHOT_KEY = 's';
 const std::string DEV_DIRECTORY = "C:/Users/jason/Desktop/Code/lidar-slam-dunk/local_resources/";
 
 void printStartupInfo();
-void grabScreenshot(cv::Mat colorScreen);
+void grabScreenshot(cv::Mat colorScreen, std::string type);
 void deptyByteArrToMat(UINT16* pixelData, cv::Mat depthMat);
 
 int main()
 {
+	for (int i = 0; i < DEPTH_IMG_SIZE; i++) {
+		DEPTH_IMG_SIZE_VECTOR[i] = i;
+	}
 	printStartupInfo();
 
 	IKinectSensor* kinectSensor = NULL;
@@ -94,17 +108,19 @@ int main()
 			IDepthFrameReference* depthFrameReference = NULL;
 			multiFrame->get_DepthFrameReference(&depthFrameReference);
 			depthFrameReference->AcquireFrame(&depthFrame);
-			if (depthFrame)
+
+			IColorFrame* colorFrame = NULL;
+			IColorFrameReference* colorFrameReference = NULL;
+			multiFrame->get_ColorFrameReference(&colorFrameReference);
+			colorFrameReference->AcquireFrame(&colorFrame);
+
+			if (depthFrame && colorFrame)
 			{
 				hr = depthFrame->CopyFrameDataToArray(DEPTH_IMG_SIZE, pixelData);
 				deptyByteArrToMat(pixelData, depthBufferMat);
 				cv::imshow("Kinect_Depth", depthBufferMat);
 
 				// Color Frame loading - this syncs the slower depth frame with the faster color frame
-				IColorFrame* colorFrame = NULL;
-				IColorFrameReference* colorFrameReference = NULL;
-				multiFrame->get_ColorFrameReference(&colorFrameReference);
-				colorFrameReference->AcquireFrame(&colorFrame);
 				colorFrame->get_RawColorImageFormat(&imageFormat);
 				assert(imageFormat == ColorImageFormat_Yuy2);
 
@@ -112,8 +128,14 @@ int main()
 				cv::resize(colorBufferMat, colorSmallMat, cv::Size(), 0.5, 0.5);
 				cv::imshow("Kinect_Color", colorSmallMat);
 
-				SafeRelease(colorFrame);
-				SafeRelease(colorFrameReference);
+				char waitKey = cv::waitKey(200);
+				if (waitKey == QUIT_KEY)
+					break;
+				else if (waitKey == SCREENSHOT_KEY)
+				{
+					grabScreenshot(colorSmallMat, "Color");
+					grabScreenshot(depthBufferMat, "Depth");
+				}
 			}
 			else
 			{
@@ -121,19 +143,16 @@ int main()
 			}
 			SafeRelease(depthFrameReference);
 			SafeRelease(depthFrame);
+			SafeRelease(colorFrame);
+			SafeRelease(colorFrameReference);
 
-			char waitKey = cv::waitKey(30);
-			if (waitKey == QUIT_KEY)
-				break;
-			else if (waitKey == SCREENSHOT_KEY)
-				grabScreenshot(colorSmallMat);
 		}
 		else
 		{
 			std::cout << "HR6." << warmup_frames << ":\t Waiting for Kinect to start up" << SUCCEEDED(hr) << std::endl;
 		}
 		SafeRelease(multiFrame);
-		Sleep(200); // Sleep for Kinect frame limitations
+		Sleep(50); // Sleep for Kinect frame limitations
 	}
 
 	SafeRelease(multiFrame);
@@ -155,7 +174,7 @@ void printStartupInfo()
 	std::cout << "\n" << std::endl;
 }
 
-void grabScreenshot(cv::Mat colorScreen)
+void grabScreenshot(cv::Mat screen, std::string type)
 {
 	time_t rawtime;
 	struct tm * timeinfo;
@@ -165,21 +184,24 @@ void grabScreenshot(cv::Mat colorScreen)
 	strftime(buffer, 80, "%Y_%m_%d_%H_%M_%S", timeinfo);
 
 	std::string filename = DEV_DIRECTORY;
-	filename.append("Color_");
+	filename.append(type);
+	filename.append("_");
 	filename.append(buffer);
 	filename.append(".jpg");
 
-	imwrite(filename, colorScreen);
+	imwrite(filename, screen);
 }
 
 void deptyByteArrToMat(UINT16* pixelData, cv::Mat depthMat)
 {
-	int straightPixelPoint = 0;
-	for (int k = 0; k < DEPTH_HEIGHT; k++) {
-		for (int m = 0; m < DEPTH_WIDTH; m++) {
-			depthMat.at<uchar>(k, m) = std::min(250, pixelData[straightPixelPoint] / 18);
-			straightPixelPoint++;
-		}
-	}
+	Concurrency::parallel_for(0, (int) DEPTH_IMG_SIZE, 1, [&](int n) {
+		pixelData[n] /= 18;
+	});
+
+	Concurrency::parallel_for(0, (int)DEPTH_HEIGHT, 1, [&](int k) {
+		Concurrency::parallel_for(0, (int)DEPTH_WIDTH, 1, [&](int n) {
+			depthMat.at<uchar>(k, n) = std::min(255, (int)pixelData[k * DEPTH_WIDTH + n]);
+		});
+	});
 }
 
