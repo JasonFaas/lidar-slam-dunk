@@ -29,14 +29,15 @@ const int DEPTH_MIN_DEPTH = 500;
 std::vector<int> DEPTH_IMG_SIZE_VECTOR(DEPTH_IMG_SIZE);
 
 
-const int MAX_WARMUP_FRAMES = 40;
+const int MAX_WARMUP_FRAMES = 100;
 
 const char QUIT_KEY = 'q';
 const char SCREENSHOT_KEY = 's';
 const char RECORD_START_KEY = 'r';
 const char RECORD_END_KEY = 't';
 bool isRecording = FALSE;
-VideoWriter videoWriter;
+VideoWriter colorVideoWriter;
+VideoWriter depthVideoWriter;
 const std::string DEV_DIRECTORY = "C:/Users/jason/Desktop/Code/lidar-slam-dunk/local_resources/";
 
 void printStartupInfo();
@@ -141,27 +142,33 @@ int main()
 				}
 				else if (!isRecording && waitKey == RECORD_START_KEY && MAX_WARMUP_FRAMES - warmup_frames > 10)
 				{
-					videoWriter = VideoWriter(
-						"C:/Users/jason/Desktop/Code/lidar-slam-dunk/local_resources/Color.mp4", 
-						CV_FOURCC('X', '2', '6', '4'), 
-						5.0, 
-						Size(COLOR_WIDTH / 2, COLOR_HEIGHT / 2), 
+					colorVideoWriter = VideoWriter(
+						recordingFileName("Color"),
+						CV_FOURCC('X', '2', '6', '4'),
+						5.0,
+						Size(COLOR_WIDTH / 2, COLOR_HEIGHT / 2),
 						true
+					);
+					depthVideoWriter = VideoWriter(
+						recordingFileName("Depth"),
+						CV_FOURCC('X', '2', '6', '4'),
+						5.0,
+						Size(DEPTH_WIDTH, DEPTH_HEIGHT),
+						false
 					);
 					isRecording = TRUE;
 				}
 				else if (isRecording && (waitKey == RECORD_END_KEY || MAX_WARMUP_FRAMES - warmup_frames < 10))
 				{
 					isRecording = FALSE;
-					videoWriter.release();
+					colorVideoWriter.release();
+					depthVideoWriter.release();
 				}
-
-				
-
 
 				if (isRecording)
 				{
-					videoWriter.write(colorSmallMat);
+					colorVideoWriter.write(colorSmallMat);
+					depthVideoWriter.write(depthBufferMat);
 				}
 			}
 			else
