@@ -13,13 +13,9 @@
 
 #include <opencv2/opencv.hpp>
 
-
-//
-//#include <windows.h>
 #include <ppl.h>
-//#include <iostream>
-//#include <algorithm>
-//#include <array>
+
+using namespace cv;
 
 const int COLOR_WIDTH = 1920;
 const int COLOR_HEIGHT = 1080;
@@ -37,11 +33,17 @@ const int MAX_WARMUP_FRAMES = 40;
 
 const char QUIT_KEY = 'q';
 const char SCREENSHOT_KEY = 's';
+const char RECORD_START_KEY = 'r';
+const char RECORD_END_KEY = 't';
+bool isRecording = FALSE;
+VideoWriter videoWriter;
 const std::string DEV_DIRECTORY = "C:/Users/jason/Desktop/Code/lidar-slam-dunk/local_resources/";
 
 void printStartupInfo();
 void grabScreenshot(cv::Mat colorScreen, std::string type);
 void deptyByteArrToMat(UINT16* pixelData, cv::Mat depthMat);
+void getDateTime(char* buffer);
+std::string recordingFileName(std::string type);
 
 int main()
 {
@@ -95,6 +97,7 @@ int main()
 	IMultiSourceFrame* multiFrame = NULL;
 	ColorImageFormat imageFormat = ColorImageFormat_None;
 
+	
 	while (warmup_frames < MAX_WARMUP_FRAMES)
 	{
 		multiFrame = NULL;
@@ -136,16 +139,40 @@ int main()
 					grabScreenshot(colorSmallMat, "Color");
 					grabScreenshot(depthBufferMat, "Depth");
 				}
+				else if (!isRecording && waitKey == RECORD_START_KEY && MAX_WARMUP_FRAMES - warmup_frames > 10)
+				{
+					videoWriter = VideoWriter(
+						"C:/Users/jason/Desktop/Code/lidar-slam-dunk/local_resources/Color.mp4", 
+						CV_FOURCC('X', '2', '6', '4'), 
+						5.0, 
+						Size(COLOR_WIDTH / 2, COLOR_HEIGHT / 2), 
+						true
+					);
+					isRecording = TRUE;
+				}
+				else if (isRecording && (waitKey == RECORD_END_KEY || MAX_WARMUP_FRAMES - warmup_frames < 10))
+				{
+					isRecording = FALSE;
+					videoWriter.release();
+				}
+
+				
+
+
+				if (isRecording)
+				{
+					videoWriter.write(colorSmallMat);
+				}
 			}
 			else
 			{
 				warmup_frames++;
 			}
+
 			SafeRelease(depthFrameReference);
 			SafeRelease(depthFrame);
 			SafeRelease(colorFrame);
 			SafeRelease(colorFrameReference);
-
 		}
 		else
 		{
@@ -171,17 +198,29 @@ void printStartupInfo()
 	std::cout << "Hotkey reference:" << std::endl;
 	std::cout << "\tQuit Program: " << QUIT_KEY << std::endl;
 	std::cout << "\tSave Screenshots: " << SCREENSHOT_KEY << std::endl;
+	std::cout << "\tRecord Start: " << RECORD_START_KEY << std::endl;
+	std::cout << "\tRecord End: " << RECORD_END_KEY << std::endl;
 	std::cout << "\n" << std::endl;
+}
+
+std::string recordingFileName(std::string type)
+{
+	char buffer[80];
+	getDateTime(buffer);
+
+	std::string filename = DEV_DIRECTORY;
+	filename.append(type);
+	filename.append("_");
+	filename.append(buffer);
+	filename.append(".mp4");
+
+	return filename;
 }
 
 void grabScreenshot(cv::Mat screen, std::string type)
 {
-	time_t rawtime;
-	struct tm * timeinfo;
 	char buffer[80];
-	time(&rawtime);
-	timeinfo = localtime(&rawtime);
-	strftime(buffer, 80, "%Y_%m_%d_%H_%M_%S", timeinfo);
+	getDateTime(buffer);
 
 	std::string filename = DEV_DIRECTORY;
 	filename.append(type);
@@ -190,6 +229,16 @@ void grabScreenshot(cv::Mat screen, std::string type)
 	filename.append(".jpg");
 
 	imwrite(filename, screen);
+}
+
+void getDateTime(char* buffer)
+{
+	time_t rawtime;
+	struct tm * timeinfo;
+	//char buffer[80];
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+	strftime(buffer, 80, "%Y_%m_%d_%H_%M_%S", timeinfo);
 }
 
 void deptyByteArrToMat(UINT16* pixelData, cv::Mat depthMat)
