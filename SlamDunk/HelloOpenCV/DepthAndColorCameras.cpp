@@ -29,7 +29,7 @@ const int DEPTH_MIN_DEPTH = 500;
 std::vector<int> DEPTH_IMG_SIZE_VECTOR(DEPTH_IMG_SIZE);
 
 
-const int MAX_WARMUP_FRAMES = 100;
+const int MAX_WARMUP_FRAMES = 200;
 
 const char QUIT_KEY = 'q';
 const char SCREENSHOT_KEY = 's';
