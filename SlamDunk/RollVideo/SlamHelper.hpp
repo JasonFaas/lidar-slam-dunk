@@ -3,6 +3,7 @@
 #include <iostream>
 #include "opencv2/opencv.hpp"
 #include <ppl.h>
+#include "DepthFeature.hpp"
 
 class SlamHelper
 {
@@ -15,6 +16,8 @@ class SlamHelper
 		cv::Mat linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage);
 	private:
 		cv::Mat depthImage, dilationDst, blackPixelsThreshold, medianBlackPixels, tempDepthImg, maskInv;
+
+		std::vector<DepthFeature*> existingFeatures;
 
 		int threshVal = 25;
 		int dilation_size = 20;

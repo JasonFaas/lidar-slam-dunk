@@ -10,6 +10,7 @@
 #include <opencv2/opencv.hpp>
 
 #include <ppl.h>
+#include "DepthFeature.hpp"
 
 #include "SlamHelper.hpp"
 
@@ -23,6 +24,16 @@ const char RECORD_END_KEY = 't';
 
 int main()
 {
+	DepthFeature * testDepthFeature = new DepthFeature(NULL, NULL, NULL, NULL);
+	if (!testDepthFeature->unitTestsHere())
+	{
+		std::cout << "Error with DepthFeature unit tests" << std::endl;
+		std::cin.ignore();
+		return -1;
+	}
+	//TODO SafeRelease(testDepthFeature);
+
+
 	cv::VideoCapture capture(DEV_DIRECTORY + "Depth_2018_11_26_10_46_04.mp4");
 	cv::Mat frame, bwFrame;
 

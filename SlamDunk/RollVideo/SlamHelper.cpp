@@ -5,12 +5,14 @@
 #include <math.h>
 #include <stdio.h>
 #include <iomanip>
+#include "DepthFeature.hpp"
 
 #define PI 3.14159265
 
 SlamHelper::SlamHelper()
 {
 	cv::Mat depthImage, dilationDst, blackPixelsThreshold, medianBlackPixels, tempDepthImg, maskInv;
+	existingFeatures = {};
 }
 
 cv::Mat
@@ -166,6 +168,7 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 	// highlight locations of features
 	cv::Point startPoint, endPoint;
 	int iterator = 1;
+	std::vector<DepthFeature*> newFeatures = {};
 	for (std::tuple<cv::Point, cv::Point> pointTuple : v) 
 	{	
 		std::tie(startPoint, endPoint) = pointTuple;
@@ -182,7 +185,35 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 		// TODO: This will be more complicated for actual feature tracking over multiple frames
 		cv::line(fullRepresentation, cv::Point(startPoint.x + 400, startPoint.y + 100), cv::Point(endPoint.x + 400, endPoint.y + 100), cv::Scalar(180, 180, 180), 3, 8, 0);
 		cv::circle(fullRepresentation, cv::Point(400 + DEPTH_WIDTH / 2, 100 + 256), 4, cv::Scalar(100, 50, 255), -1);
+
+		cv::Point newStartPoint = cv::Point(startPoint.x + 400, startPoint.y + 100);
+		cv::Point newEndPoint = cv::Point(endPoint.x + 400, endPoint.y + 100);
+		DepthFeature* currentFeature = new DepthFeature(&newStartPoint, &newEndPoint, NULL, NULL);
+		newFeatures.push_back(currentFeature);
 	}
+
+	//Link old features to new features
+	for (DepthFeature* newFeature : newFeatures)
+	{
+		bool addNewFeatureToExisting = true;
+		for (DepthFeature* existingFeature : existingFeatures)
+		{
+			if (newFeature->closeToAnotherFeature(existingFeature))
+			{
+				// TODO Update existing feature
+				addNewFeatureToExisting = false;
+				break;
+			}
+		}
+
+		// Add new feature to existing features
+		if (addNewFeatureToExisting)
+		{
+			existingFeatures.push_back(newFeature);
+		}
+	}
+
+	std::cout << "Feature Count:\t" << existingFeatures.size() << std::endl;
 
 	cv::namedWindow("Overhead Extra");
 	imshow("Overhead Extra", overheadCopy);
