@@ -123,9 +123,9 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 	overheadImage.copyTo(overheadCopy);
 	
 	int rowOfInterest = depthImage.rows / 2;
-	const int featureLookAheadMax = 3;
-	const int depthRangeAllowable = 5;
-	const int minPointsInLine = 15;
+	const int featureLookAheadMax = 4;
+	const int depthRangeAllowable = 4;
+	const int minPointsInLine = 20;
 	std::vector<std::tuple<cv::Point, cv::Point>> v = {};
 
 	int currentStartX = 0;
