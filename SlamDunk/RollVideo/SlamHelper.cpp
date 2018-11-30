@@ -114,18 +114,81 @@ SlamHelper::depthTo2DimAdjusted(cv::Mat depthImage)
 }
 
 cv::Mat
-SlamHelper::linesOnCommonFeatures(cv::Mat depthTopImage)
+SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 {
-	cv::Mat returnImg = cv::Mat(255, depthImage.cols, CV_8UC1, cv::Scalar(0));
+	cv::Mat depthCopy;
+	cv::Mat overheadCopy;
+	depthImage.copyTo(depthCopy);
+	overheadImage.copyTo(overheadCopy);
+	int depth[512];
+	
+	int rowOfInterest = depthImage.rows / 2;
+	int currentStartX = -1;
+	int currentStartDepth = -1;
+	int featureLookAheadMax = 2;
+	int currentDepthRef = -1;
 
-	//int rowOfInterest = depthImage.rows / 2;
-	//Concurrency::parallel_for(0, depthImage.cols, 1, [&](int n) {
-	//	double depthAtROI = depthImage.at<uchar>(rowOfInterest, n);
-	//	double angleToCos = abs(90.0 - 55.0 - ((double)n) / 7.252);
-	//	double valueToSet = depthAtROI * cos(angleToCos * PI / 180.0);
-	//	//std::cout << "what:\t" << (int)depthAtROI << "\tmorewhat:\t" << (int)angleToCos << "\tmorewhat:\t" << (int)valueToSet << std::endl;
-	//	returnImg.at<uchar>(255 - (int)valueToSet, n) = 255;
-	//});
+	std::vector<int> v = { 5, 100, 200, 355 };
+	
+	for (int i = 0; i < depthImage.cols; i++)
+	{
+		currentStartX = i;
+		currentStartDepth = depthImage.at<uchar>(rowOfInterest, i);
 
-	return returnImg;
+		currentDepthRef = currentStartDepth;
+		for (int k = i+1; k + featureLookAheadMax < depthImage.cols; k++, i++) 
+		{
+			int nextDepth = depthImage.at<uchar>(rowOfInterest, k);
+			int nextNextDepth = depthImage.at<uchar>(rowOfInterest, k);
+			//TODO: make these if statements a loop
+			if (abs(nextDepth - currentDepthRef) < 2)
+			{
+				currentDepthRef = nextDepth;
+				continue;
+			}
+			else if (abs(nextNextDepth - currentDepthRef) < 2)
+			{
+				currentDepthRef = nextDepth;
+				k++;
+				i++;
+				continue;
+			}
+			else
+			{
+				//TODO: wrap up and break statement
+				if (k - currentStartX > 4)
+				{
+
+				}
+				break;
+			}
+			
+		}
+	}
+	/*Concurrency::parallel_for(0, depthImage.cols, 1, [&](int n) {
+		depth[n] = depthImage.at<uchar>(rowOfInterest, n);
+	});*/
+
+	//high midpoint of features
+	
+
+	v.push_back(400);
+	v.push_back(450);
+
+	cv::line(overheadCopy, cv::Point(5, 100), cv::Point(100, 105), cv::Scalar(180), 3, 8, 0);
+	cv::line(overheadCopy, cv::Point(200, 200), cv::Point(250, 220), cv::Scalar(180), 3, 8, 0);
+	cv::line(overheadCopy, cv::Point(400, 100), cv::Point(500, 85), cv::Scalar(180), 3, 8, 0);
+
+	cv::line(depthCopy, cv::Point(5, rowOfInterest), cv::Point(100, rowOfInterest), cv::Scalar(0), 3, 8, 0);
+	cv::putText(depthCopy, "01", cv::Point(5, rowOfInterest + 40), CV_FONT_HERSHEY_PLAIN, 3, cv::Scalar(0));
+	cv::line(depthCopy, cv::Point(200, rowOfInterest), cv::Point(250, rowOfInterest), cv::Scalar(0), 3, 8, 0);
+	cv::line(depthCopy, cv::Point(400, rowOfInterest), cv::Point(500, rowOfInterest), cv::Scalar(0), 3, 8, 0);
+
+
+	cv::namedWindow("Overhead Extra");
+	imshow("Overhead Extra", overheadCopy);
+	cv::namedWindow("Depth Extra");
+	imshow("Depth Extra", depthCopy);
+
+	return depthCopy;
 }

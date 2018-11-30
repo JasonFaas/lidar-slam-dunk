@@ -49,11 +49,10 @@ int main()
 		cv::namedWindow("Depth to 2D");
 		imshow("Depth to 2D", depthTo2d);
 
-		//cv::Mat depthTo2dAdjusted = slamHelper->depthTo2DimAdjusted(depthBlurred);
-		//cv::namedWindow("Depth to 2D Adjusted");
-		//imshow("Depth to 2D Adjusted", depthTo2dAdjusted);
+		cv::Mat startAndEndPoints = slamHelper->linesOnCommonFeatures(depthBlurred, depthTo2d);
+		
 
-		char waitKey = cv::waitKey(200);
+		char waitKey = cv::waitKey(0);
 		if (waitKey == QUIT_KEY)
 			break;
 	}
