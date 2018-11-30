@@ -121,13 +121,11 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 	cv::Mat overheadCopy;
 	depthImage.copyTo(depthCopy);
 	overheadImage.copyTo(overheadCopy);
-	int depth[512];
 	
 	int rowOfInterest = depthImage.rows / 2;
 	const int featureLookAheadMax = 3;
 	const int depthRangeAllowable = 5;
 	const int minPointsInLine = 15;
-
 	std::vector<std::tuple<cv::Point, cv::Point>> v = {};
 
 	int currentStartX = 0;
@@ -152,15 +150,12 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 			}
 		}
 
-		std::cout << "what:\t" << i << "what:\t" << currentStartX << std::endl;
-
 		if (!continueLine || i + 2 + featureLookAheadMax > depthImage.cols)
 		{
 			if (i + 1 - currentStartX >= minPointsInLine)
 			{
 				v.push_back(std::make_tuple(cv::Point(currentStartX, 255 - currentStartDepth), cv::Point(i, 255 - currentDepthRef)));
 			}
-
 			currentStartX = i + 1;
 			currentStartDepth = depthImage.at<uchar>(rowOfInterest, currentStartX);
 			currentDepthRef = currentStartDepth;
@@ -176,25 +171,16 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 	for (std::tuple<cv::Point, cv::Point> pointTuple : v) 
 	{	
 		std::tie(startPoint, endPoint) = pointTuple;
-		cv::line(overheadCopy, startPoint, endPoint, cv::Scalar(180), 3, 8, 0);
-
-		cv::line(depthCopy, cv::Point(startPoint.x, rowOfInterest), cv::Point(endPoint.x, rowOfInterest), cv::Scalar(0), 3, 8, 0);
 
 		std::stringstream dispText;
 		dispText << std::setfill('0') << std::setw(2) << iterator++;
+
+		cv::line(overheadCopy, startPoint, endPoint, cv::Scalar(180), 3, 8, 0);
+		cv::putText(overheadCopy, dispText.str(), cv::Point(startPoint.x, startPoint.y + 40), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(200));
+
+		cv::line(depthCopy, cv::Point(startPoint.x, rowOfInterest), cv::Point(endPoint.x, rowOfInterest), cv::Scalar(0), 3, 8, 0);
 		cv::putText(depthCopy, dispText.str(), cv::Point(startPoint.x, rowOfInterest + 40), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(0));
 	}
-
-
-	//cv::line(overheadCopy, cv::Point(5, 100), cv::Point(100, 105), cv::Scalar(180), 3, 8, 0);
-	//cv::line(overheadCopy, cv::Point(200, 200), cv::Point(250, 220), cv::Scalar(180), 3, 8, 0);
-	//cv::line(overheadCopy, cv::Point(400, 100), cv::Point(500, 85), cv::Scalar(180), 3, 8, 0);
-
-	/*cv::line(depthCopy, cv::Point(5, rowOfInterest), cv::Point(100, rowOfInterest), cv::Scalar(0), 3, 8, 0);
-	cv::putText(depthCopy, "01", cv::Point(5, rowOfInterest + 40), CV_FONT_HERSHEY_PLAIN, 3, cv::Scalar(0));
-	cv::line(depthCopy, cv::Point(200, rowOfInterest), cv::Point(250, rowOfInterest), cv::Scalar(0), 3, 8, 0);
-	cv::line(depthCopy, cv::Point(400, rowOfInterest), cv::Point(500, rowOfInterest), cv::Scalar(0), 3, 8, 0);*/
-
 
 	cv::namedWindow("Overhead Extra");
 	imshow("Overhead Extra", overheadCopy);
