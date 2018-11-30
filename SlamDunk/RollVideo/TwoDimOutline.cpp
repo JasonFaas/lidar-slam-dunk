@@ -49,6 +49,10 @@ int main()
 		cv::namedWindow("Depth to 2D");
 		imshow("Depth to 2D", depthTo2d);
 
+		//cv::Mat depthTo2dAdjusted = slamHelper->depthTo2DimAdjusted(depthBlurred);
+		//cv::namedWindow("Depth to 2D Adjusted");
+		//imshow("Depth to 2D Adjusted", depthTo2dAdjusted);
+
 		char waitKey = cv::waitKey(200);
 		if (waitKey == QUIT_KEY)
 			break;

@@ -2,8 +2,10 @@
 #include "opencv2/opencv.hpp"
 #include <ppl.h>
 #include "SlamHelper.hpp"
+#include <math.h>
+#include <stdio.h>
 
-
+#define PI 3.14159265
 
 SlamHelper::SlamHelper()
 {
@@ -18,8 +20,6 @@ SlamHelper::blurGoodDataOverBad(cv::Mat depthImage)
 
 	cv::Rect reverseBorder = cv::Rect(dilation_size, dilation_size, depthImage.cols, depthImage.rows);
 	cv::copyMakeBorder(depthImage, depthCopy, dilation_size, dilation_size, dilation_size, dilation_size, cv::BORDER_REFLECT);
-
-	int element_size = dilation_size * 2 + 1;
 
 	cv::Mat firstBlackPixelThresh;
 	cv::threshold(depthCopy, firstBlackPixelThresh, threshVal, 255, cv::THRESH_BINARY_INV);
@@ -59,6 +59,8 @@ SlamHelper::blurGoodDataOverBad(cv::Mat depthImage)
 		else if(i + 1 == max_dilation_iterations)
 			std::cout << "Unable to clear all invalid data:\t" << blackPixelCount << std::endl;
 
+		//int element_size = dilation_size * 2 + 1;
+		int element_size = (i + 1) * 2 + 1;
 		cv::medianBlur(depthCopy, dilationDst, element_size);
 		cv::bitwise_not(blackPixelsThreshold, maskInv);
 		cv::bitwise_and(depthCopy, depthCopy, tempDepthImg, maskInv);
@@ -90,6 +92,40 @@ SlamHelper::depthTo2D(cv::Mat depthImage)
 	Concurrency::parallel_for(0, depthImage.cols, 1, [&](int n) {
 		returnImg.at<uchar>(255 - depthImage.at<uchar>(rowOfInterest, n), n) = 255;
 	});
+
+	return returnImg;
+}
+
+cv::Mat
+SlamHelper::depthTo2DimAdjusted(cv::Mat depthImage)
+{
+	cv::Mat returnImg = cv::Mat(255, depthImage.cols, CV_8UC1, cv::Scalar(0));
+
+	int rowOfInterest = depthImage.rows / 2;
+	Concurrency::parallel_for(0, depthImage.cols, 1, [&](int n) {
+		double depthAtROI = depthImage.at<uchar>(rowOfInterest, n);
+		double angleToCos = abs(90.0 - 55.0 - ((double)n) / 7.252);
+		double valueToSet = depthAtROI * cos(angleToCos * PI / 180.0);
+		//std::cout << "what:\t" << (int)depthAtROI << "\tmorewhat:\t" << (int)angleToCos << "\tmorewhat:\t" << (int)valueToSet << std::endl;
+		returnImg.at<uchar>(255 - (int)valueToSet, n) = 255;
+	});
+
+	return returnImg;
+}
+
+cv::Mat
+SlamHelper::linesOnCommonFeatures(cv::Mat depthTopImage)
+{
+	cv::Mat returnImg = cv::Mat(255, depthImage.cols, CV_8UC1, cv::Scalar(0));
+
+	//int rowOfInterest = depthImage.rows / 2;
+	//Concurrency::parallel_for(0, depthImage.cols, 1, [&](int n) {
+	//	double depthAtROI = depthImage.at<uchar>(rowOfInterest, n);
+	//	double angleToCos = abs(90.0 - 55.0 - ((double)n) / 7.252);
+	//	double valueToSet = depthAtROI * cos(angleToCos * PI / 180.0);
+	//	//std::cout << "what:\t" << (int)depthAtROI << "\tmorewhat:\t" << (int)angleToCos << "\tmorewhat:\t" << (int)valueToSet << std::endl;
+	//	returnImg.at<uchar>(255 - (int)valueToSet, n) = 255;
+	//});
 
 	return returnImg;
 }
