@@ -67,7 +67,6 @@ SlamHelper::blurGoodDataOverBad(cv::Mat depthImage)
 		cv::bitwise_and(depthCopy, depthCopy, tempDepthImg, maskInv);
 		cv::add(tempDepthImg, dilationDst, depthCopy, blackPixelsThreshold);
 	}
-	std::cout << "\n\n" << std::endl;
 
 	blackPixelsThreshold = NULL;
 	medianBlackPixels = NULL;
@@ -117,6 +116,8 @@ SlamHelper::depthTo2DimAdjusted(cv::Mat depthImage)
 cv::Mat
 SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 {
+	cv::Mat fullRepresentation = cv::Mat(cv::Size(1600, 800), CV_8UC3, cv::Scalar(0, 0, 0));
+
 	cv::Mat depthCopy;
 	cv::Mat overheadCopy;
 	depthImage.copyTo(depthCopy);
@@ -161,11 +162,8 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 			currentDepthRef = currentStartDepth;
 		}
 	}
-	/*Concurrency::parallel_for(0, depthImage.cols, 1, [&](int n) {
-		depth[n] = depthImage.at<uchar>(rowOfInterest, n);
-	});*/
 
-	//high midpoint of features
+	// highlight locations of features
 	cv::Point startPoint, endPoint;
 	int iterator = 1;
 	for (std::tuple<cv::Point, cv::Point> pointTuple : v) 
@@ -174,18 +172,24 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 
 		std::stringstream dispText;
 		dispText << std::setfill('0') << std::setw(2) << iterator++;
-
+		// Overhead Representaiton
 		cv::line(overheadCopy, startPoint, endPoint, cv::Scalar(180), 3, 8, 0);
 		cv::putText(overheadCopy, dispText.str(), cv::Point(startPoint.x, startPoint.y + 40), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(200));
-
+		// Depth Representation
 		cv::line(depthCopy, cv::Point(startPoint.x, rowOfInterest), cv::Point(endPoint.x, rowOfInterest), cv::Scalar(0), 3, 8, 0);
 		cv::putText(depthCopy, dispText.str(), cv::Point(startPoint.x, rowOfInterest + 40), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(0));
+		// Full Representation
+		// TODO: This will be more complicated for actual feature tracking over multiple frames
+		cv::line(fullRepresentation, cv::Point(startPoint.x + 400, startPoint.y + 100), cv::Point(endPoint.x + 400, endPoint.y + 100), cv::Scalar(180, 180, 180), 3, 8, 0);
+		cv::circle(fullRepresentation, cv::Point(400 + DEPTH_WIDTH / 2, 100 + 256), 4, cv::Scalar(100, 50, 255), -1);
 	}
 
 	cv::namedWindow("Overhead Extra");
 	imshow("Overhead Extra", overheadCopy);
 	cv::namedWindow("Depth Extra");
 	imshow("Depth Extra", depthCopy);
+	cv::namedWindow("Full Representation");
+	imshow("Full Representation", fullRepresentation);
 
 	return depthCopy;
 }
