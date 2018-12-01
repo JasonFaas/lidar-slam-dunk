@@ -26,6 +26,35 @@ DepthFeature::DepthFeature(
 	recentEndPoint = end;
 	recentFrame = frame;
 
+	// Calculate initial angles
+	cv::Point currRobotPoint = cv::Point(400 + DEPTH_WIDTH / 2, 100 + 256);
+	int distanceMain = twoPointDistance(origStartPoint, origEndPoint);
+	int distanceLeft = twoPointDistance(origStartPoint, &currRobotPoint);
+	int distanceRight = twoPointDistance(&currRobotPoint, origEndPoint);
+	int threeSides[3];
+	threeSides[0] = distanceMain;
+	threeSides[1] = distanceLeft;
+	threeSides[2] = distanceRight;
+	int perimeter = threeSides[2] + threeSides[1] + threeSides[0];
+	for (int i = 0; i < 3; i++)
+	{
+		// IF a single side is longer than the other 2, recent recent frames so that feature is retired after one frame
+		if (perimeter - threeSides[i] * 2 < 0)
+		{
+			recentFrame = -1;
+			break;
+		}
+	}
+	// only calcuate angle if valid triangle
+	if (recentFrame != -1)
+	{
+		double initialPart = (pow(distanceMain, 2) + pow(distanceLeft, 2) - pow(distanceRight, 2)) / (2 * distanceMain * distanceLeft);
+		origStartPointAngle = acos(initialPart) * 180 / PI;
+
+		initialPart = (pow(distanceMain, 2) + pow(distanceRight, 2) - pow(distanceLeft, 2)) / (2 * distanceMain * distanceRight);
+		origEndPointAngle = acos(initialPart) * 180 / PI;
+	}
+
 	leftNeighbor = left;
 	rightNeighbor = right;
 }

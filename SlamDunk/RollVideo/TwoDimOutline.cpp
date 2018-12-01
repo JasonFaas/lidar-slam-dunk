@@ -14,6 +14,7 @@
 
 #include "SlamHelper.hpp"
 
+bool runAllUnitTestsHere();
 
 const std::string DEV_DIRECTORY = "C:/Users/jason/Desktop/Code/lidar-slam-dunk/local_resources/";
 
@@ -24,14 +25,8 @@ const char RECORD_END_KEY = 't';
 
 int main()
 {
-	DepthFeature * testDepthFeature = new DepthFeature("empty", NULL, NULL, NULL, NULL, -1);
-	if (!testDepthFeature->unitTestsHere())
-	{
-		std::cout << "Error with DepthFeature unit tests" << std::endl;
-		std::cin.ignore();
+	if (!runAllUnitTestsHere())
 		return -1;
-	}
-	//TODO SafeRelease(testDepthFeature);
 
 
 	cv::VideoCapture capture(DEV_DIRECTORY + "Depth_2018_11_26_10_46_04.mp4");
@@ -74,4 +69,22 @@ int main()
 
 
 	return 0;
+}
+
+bool runAllUnitTestsHere()
+{
+	cv::Point testFirst = cv::Point(10, 10);
+	cv::Point testSecond = cv::Point(20, 20);
+	DepthFeature * testDepthFeature = new DepthFeature("empty", &testFirst, &testSecond, NULL, NULL, -1);
+	if (!testDepthFeature->unitTestsHere())
+	{
+		std::cout << "Error with DepthFeature unit tests" << std::endl;
+		std::cin.ignore();
+		return false;
+	}
+	//TODO SafeRelease(testDepthFeature);
+	//TODO delete testFirst;
+	//TODO delete testSecond;
+
+	return true;
 }

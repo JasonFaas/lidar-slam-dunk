@@ -38,5 +38,11 @@ class DepthFeature
 		DepthFeature* leftNeighbor = NULL;
 		DepthFeature* rightNeighbor = NULL;
 
+
+		double origStartPointAngle = -1;
+		double origEndPointAngle = -1;
+
 		bool twoPointsClose(cv::Point* first, cv::Point* second);
+
+		#define PI 3.14159265
 };
