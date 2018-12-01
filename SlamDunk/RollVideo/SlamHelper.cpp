@@ -164,7 +164,7 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 				cv::Point* newEndPoint = new cv::Point(i, 255 - currentDepthRef);
 
 				std::stringstream dispText;
-				dispText << std::setfill('0') << std::setw(2) << featureNameIterator++;
+				dispText << std::setfill('0') << std::setw(3) << featureNameIterator++;
 				DepthFeature* currentFeature = new DepthFeature(dispText.str(), newStartPoint, newEndPoint, NULL, NULL);
 				newFeatures.push_back(currentFeature);
 			}

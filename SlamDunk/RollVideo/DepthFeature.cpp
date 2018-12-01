@@ -28,7 +28,7 @@ DepthFeature::unitTestsHere()
 {
 	cv::Point firstTemp = cv::Point(10, 10);
 	cv::Point secondTemp = cv::Point(15, 15);
-	cv::Point thirdTemp = cv::Point(20, 20);
+	cv::Point thirdTemp = cv::Point(25, 25);
 	if (!twoPointsClose(&firstTemp, &secondTemp))
 		return false;
 	if (twoPointsClose(&firstTemp, &thirdTemp))
@@ -45,7 +45,7 @@ DepthFeature::twoPointsClose(cv::Point* first, cv::Point* second)
 
 	double distance = pow(pow(first->x - second->x, 2) + pow(first->y - second->y, 2), 0.5);
 
-	return distance < 10;
+	return distance < 16;
 }
 
 bool
