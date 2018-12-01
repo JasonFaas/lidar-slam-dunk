@@ -15,12 +15,19 @@ class DepthFeature
 		void updateRecentPoints(cv::Point * start, cv::Point * end);
 
 		std::string getFeatureName();
+		bool isOldFeature();
+		bool featureRecentOnEdge();
+
+		double twoPointDistance(cv::Point* first, cv::Point* second);
 
 		bool unitTestsHere();
 
 
 
 	private:
+		const int DEPTH_WIDTH = 512;
+		const int DEPTH_HEIGHT = 424;
+
 		std::string featureName = "empty";
 		cv::Point* origStartPoint = NULL;
 		cv::Point* origEndPoint = NULL;

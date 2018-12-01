@@ -127,9 +127,9 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 	overheadImage.copyTo(overheadCopy);
 	
 	int rowOfInterest = depthImage.rows / 2;
-	const int featureLookAheadMax = 4;
-	const int depthRangeAllowable = 4;
-	const int minPointsInLine = 20;
+	const int featureLookAheadMax = 3;
+	const int depthRangeAllowable = 6;
+	const int minPointsInLine = 15;
 	//std::vector<std::tuple<cv::Point, cv::Point>> traditionalFeatures = {};
 	std::vector<DepthFeature*> newFeatures = {};
 
@@ -187,12 +187,31 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 		}
 	}
 
+
+
+
 	// highlight locations of features
 	cv::Point* startPoint;
 	cv::Point* endPoint;
+
+	bool firstRobotLocation = true;
 	for (DepthFeature* newFeature : newFeatures)
 	{	
 		std::tie(startPoint, endPoint) = newFeature->getRecentPoints();
+
+
+		//TODO if new feature is existing and non-edge, attempt to update robot position
+		if (newFeature->isOldFeature() && !newFeature->featureRecentOnEdge() && firstRobotLocation)
+		{
+			// For PoC draw lines and show distances of all three lines
+			// and also show all 3 angles
+			// for RECENT
+			int distance = newFeature->twoPointDistance(startPoint, endPoint);
+			cv::putText(fullRepresentation, std::to_string(distance), cv::Point(startPoint->x + 400, startPoint->y - 40 + 100), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(250, 200, 250));
+
+			firstRobotLocation = false;
+		}
+
 
 		// Overhead Representaiton
 		cv::line(overheadCopy, cv::Point(startPoint->x, startPoint->y), cv::Point(endPoint->x, endPoint->y), cv::Scalar(180), 3, 8, 0);

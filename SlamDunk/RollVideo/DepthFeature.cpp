@@ -38,13 +38,40 @@ DepthFeature::~DepthFeature()
 bool
 DepthFeature::unitTestsHere()
 {
+	int testCount = 0;
 	cv::Point firstTemp = cv::Point(10, 10);
 	cv::Point secondTemp = cv::Point(15, 15);
 	cv::Point thirdTemp = cv::Point(25, 25);
+	cv::Point leftEdgeTemp = cv::Point(4, 25);
+	cv::Point rightEdgeTemp = cv::Point(DEPTH_WIDTH - 3, 25);
 	if (!twoPointsClose(&firstTemp, &secondTemp))
+	{
+		std::cout << "1st" << std::endl;
 		return false;
+	}
 	if (twoPointsClose(&firstTemp, &thirdTemp))
+	{
+		std::cout << "2nd" << std::endl;
 		return false;
+	}
+	updateRecentPoints(&firstTemp, &leftEdgeTemp);
+	if (!featureRecentOnEdge())
+	{
+		std::cout << "3rd" << std::endl;
+		return false;
+	}
+	updateRecentPoints(&rightEdgeTemp, &firstTemp);
+	if (!featureRecentOnEdge())
+	{
+		std::cout << "4th" << std::endl;
+		return false;
+	}
+	updateRecentPoints(&firstTemp, &secondTemp);
+	if (featureRecentOnEdge())
+	{
+		std::cout << "5th" << std::endl;
+		return false;
+	}
 	
 	return true;
 }
@@ -55,9 +82,14 @@ DepthFeature::twoPointsClose(cv::Point* first, cv::Point* second)
 	if (first == NULL || second == NULL)
 		return false;
 
-	double distance = pow(pow(first->x - second->x, 2) + pow(first->y - second->y, 2), 0.5);
-
+	double distance = twoPointDistance(first, second);
 	return distance < 16;
+}
+
+double
+DepthFeature::twoPointDistance(cv::Point* first, cv::Point* second)
+{
+	return pow(pow(first->x - second->x, 2) + pow(first->y - second->y, 2), 0.5);
 }
 
 bool
@@ -96,4 +128,24 @@ std::string
 DepthFeature::getFeatureName()
 {
 	return featureName;
+}
+
+bool
+DepthFeature::isOldFeature()
+{
+	return recentFrame != originalFrame;
+}
+
+bool
+DepthFeature::featureRecentOnEdge()
+{
+	int nearEdgeMax = 10;
+	std::vector<int> verifyPoints = { recentStartPoint->x, recentEndPoint->x };
+	for (int point : verifyPoints)
+	{
+		if (point < nearEdgeMax || DEPTH_WIDTH - point < nearEdgeMax)
+			return true;
+	}
+
+	return false;
 }
