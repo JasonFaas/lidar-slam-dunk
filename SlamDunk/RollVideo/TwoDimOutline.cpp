@@ -24,7 +24,7 @@ const char RECORD_END_KEY = 't';
 
 int main()
 {
-	DepthFeature * testDepthFeature = new DepthFeature(NULL, NULL, NULL, NULL);
+	DepthFeature * testDepthFeature = new DepthFeature("empty", NULL, NULL, NULL, NULL);
 	if (!testDepthFeature->unitTestsHere())
 	{
 		std::cout << "Error with DepthFeature unit tests" << std::endl;

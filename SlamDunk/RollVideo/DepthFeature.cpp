@@ -7,10 +7,13 @@
 #include <iomanip>
 
 
-DepthFeature::DepthFeature(cv::Point* start, cv::Point* end, DepthFeature* left, DepthFeature* right)
+DepthFeature::DepthFeature(std::string name, cv::Point* start, cv::Point* end, DepthFeature* left, DepthFeature* right)
 {
-	startPoint = start;
-	endPoint = end;
+	featureName = name;
+	origStartPoint = start;
+	origEndPoint = end;
+	recentStartPoint = start;
+	recentEndPoint = end;
 	leftNeighbor = left;
 	rightNeighbor = right;
 }
@@ -46,24 +49,33 @@ DepthFeature::twoPointsClose(cv::Point* first, cv::Point* second)
 }
 
 bool
-DepthFeature::closeToAnotherFeature(DepthFeature * anotherFeature)
+DepthFeature::closeToAnotherFeatureRecent(DepthFeature * anotherFeature)
 {
 	cv::Point * pointOne;
 	cv::Point * pointTwo;
-	std::tie(pointOne, pointTwo) = anotherFeature->getPoints();
+	std::tie(pointOne, pointTwo) = anotherFeature->getRecentPoints();
 
 	// TODO add edge check
-	if (twoPointsClose(pointOne, startPoint) && twoPointsClose(pointTwo, endPoint)
-		|| twoPointsClose(pointOne, endPoint) && twoPointsClose(pointTwo, startPoint))
+	if (twoPointsClose(pointOne, recentStartPoint) && twoPointsClose(pointTwo, recentEndPoint)
+		|| twoPointsClose(pointOne, recentEndPoint) && twoPointsClose(pointTwo, recentStartPoint))
 	{
+		// Update recent points
+		anotherFeature->updateRecentPoints(recentStartPoint, recentEndPoint);
 		return true;
 	}
 
 	return false;
 }
 
-std::tuple<cv::Point *, cv::Point *>
-DepthFeature::getPoints()
+void
+DepthFeature::updateRecentPoints(cv::Point * start, cv::Point * end)
 {
-	return std::make_tuple(startPoint, endPoint);
+	recentStartPoint = start;
+	recentEndPoint = end;
+}
+
+std::tuple<cv::Point *, cv::Point *>
+DepthFeature::getRecentPoints()
+{
+	return std::make_tuple(recentStartPoint, recentEndPoint);
 }

@@ -186,9 +186,9 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 		cv::line(fullRepresentation, cv::Point(startPoint.x + 400, startPoint.y + 100), cv::Point(endPoint.x + 400, endPoint.y + 100), cv::Scalar(180, 180, 180), 3, 8, 0);
 		cv::circle(fullRepresentation, cv::Point(400 + DEPTH_WIDTH / 2, 100 + 256), 4, cv::Scalar(100, 50, 255), -1);
 
-		cv::Point newStartPoint = cv::Point(startPoint.x + 400, startPoint.y + 100);
-		cv::Point newEndPoint = cv::Point(endPoint.x + 400, endPoint.y + 100);
-		DepthFeature* currentFeature = new DepthFeature(&newStartPoint, &newEndPoint, NULL, NULL);
+		cv::Point* newStartPoint = new cv::Point(startPoint.x + 400, startPoint.y + 100);
+		cv::Point* newEndPoint = new cv::Point(endPoint.x + 400, endPoint.y + 100);
+		DepthFeature* currentFeature = new DepthFeature(dispText.str(), newStartPoint, newEndPoint, NULL, NULL);
 		newFeatures.push_back(currentFeature);
 	}
 
@@ -198,7 +198,7 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 		bool addNewFeatureToExisting = true;
 		for (DepthFeature* existingFeature : existingFeatures)
 		{
-			if (newFeature->closeToAnotherFeature(existingFeature))
+			if (newFeature->closeToAnotherFeatureRecent(existingFeature))
 			{
 				// TODO Update existing feature
 				addNewFeatureToExisting = false;

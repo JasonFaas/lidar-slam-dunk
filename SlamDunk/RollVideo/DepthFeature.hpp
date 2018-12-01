@@ -7,17 +7,21 @@
 class DepthFeature
 {
 	public:
-		DepthFeature(cv::Point* start, cv::Point* end, DepthFeature* left, DepthFeature* right);
+		DepthFeature(std::string name, cv::Point* start, cv::Point* end, DepthFeature* left, DepthFeature* right);
 		~DepthFeature();
 
-		bool closeToAnotherFeature(DepthFeature * anotherFeature);
-		std::tuple<cv::Point *, cv::Point *> getPoints();
+		bool closeToAnotherFeatureRecent(DepthFeature * anotherFeature);
+		std::tuple<cv::Point *, cv::Point *> getRecentPoints();
+		void updateRecentPoints(cv::Point * start, cv::Point * end);
 
 		bool unitTestsHere();
 
 	private:
-		cv::Point* startPoint = NULL;
-		cv::Point* endPoint = NULL;
+		std::string featureName = "empty";
+		cv::Point* origStartPoint = NULL;
+		cv::Point* origEndPoint = NULL;
+		cv::Point* recentStartPoint = NULL;
+		cv::Point* recentEndPoint = NULL;
 		DepthFeature* leftNeighbor = NULL;
 		DepthFeature* rightNeighbor = NULL;
 
