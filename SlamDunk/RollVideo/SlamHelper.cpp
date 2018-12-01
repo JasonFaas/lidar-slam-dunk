@@ -193,6 +193,7 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 	// highlight locations of features
 	cv::Point* startPoint;
 	cv::Point* endPoint;
+	cv::Point currRobotPoint = cv::Point(400 + DEPTH_WIDTH / 2, 100 + 256);
 
 	bool firstRobotLocation = true;
 	for (DepthFeature* newFeature : newFeatures)
@@ -206,8 +207,17 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 			// For PoC draw lines and show distances of all three lines
 			// and also show all 3 angles
 			// for RECENT
-			int distance = newFeature->twoPointDistance(startPoint, endPoint);
-			cv::putText(fullRepresentation, std::to_string(distance), cv::Point(startPoint->x + 400, startPoint->y - 40 + 100), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(250, 200, 250));
+			int distanceMain = newFeature->twoPointDistance(startPoint, endPoint);
+			int distanceLeft = newFeature->twoPointDistance(startPoint, &currRobotPoint);
+			int distanceRight = newFeature->twoPointDistance(&currRobotPoint, endPoint);
+			cv::putText(fullRepresentation, std::to_string(distanceMain), cv::Point(startPoint->x + 400, startPoint->y - 40 + 100), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(250, 150, 150));
+			cv::putText(fullRepresentation, std::to_string(distanceLeft), cv::Point(startPoint->x + 400 - 50, startPoint->y + 40 + 100), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(150, 250, 150));
+			cv::putText(fullRepresentation, std::to_string(distanceRight), cv::Point(endPoint->x + 400 + 50, endPoint->y + 40 + 100), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(150, 150, 250));
+
+			// left
+			cv::line(fullRepresentation, cv::Point(startPoint->x + 400, startPoint->y + 100), currRobotPoint, cv::Scalar(150, 250, 150), 3, 8, 0);
+			// right
+			cv::line(fullRepresentation, currRobotPoint, cv::Point(endPoint->x + 400, endPoint->y + 100), cv::Scalar(150, 150, 250), 3, 8, 0);
 
 			firstRobotLocation = false;
 		}
@@ -222,7 +232,7 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 		// Full Representation
 		// TODO: This will be more complicated for actual feature tracking over multiple frames
 		cv::line(fullRepresentation, cv::Point(startPoint->x + 400, startPoint->y + 100), cv::Point(endPoint->x + 400, endPoint->y + 100), cv::Scalar(180, 180, 180), 3, 8, 0);
-		cv::circle(fullRepresentation, cv::Point(400 + DEPTH_WIDTH / 2, 100 + 256), 4, cv::Scalar(100, 50, 255), -1);
+		cv::circle(fullRepresentation, currRobotPoint, 4, cv::Scalar(100, 50, 255), -1);
 	}
 
 
