@@ -7,7 +7,13 @@
 #include <iomanip>
 
 
-DepthFeature::DepthFeature(std::string name, cv::Point* start, cv::Point* end, DepthFeature* left, DepthFeature* right)
+DepthFeature::DepthFeature(
+	std::string name, 
+	cv::Point* start, 
+	cv::Point* end, 
+	DepthFeature* left, 
+	DepthFeature* right,
+	int frame)
 {
 	featureName = name;
 	origStartPoint = start;
@@ -16,6 +22,7 @@ DepthFeature::DepthFeature(std::string name, cv::Point* start, cv::Point* end, D
 	recentEndPoint = end;
 	leftNeighbor = left;
 	rightNeighbor = right;
+	originalFrame = frame;
 }
 
 DepthFeature::~DepthFeature()
@@ -62,6 +69,20 @@ DepthFeature::closeToExistingFeatureRecent(DepthFeature * existingFeature)
 		// Update existing recentPoints and new featureName
 		existingFeature->updateRecentPoints(recentStartPoint, recentEndPoint);
 		featureName = existingFeature->getFeatureName();
+		return true;
+	}
+
+	return false;
+}
+
+bool
+DepthFeature::recentCloseToNewFeature(cv::Point* pointOne, cv::Point* pointTwo)
+{
+	// TODO add edge check
+	if (twoPointsClose(pointOne, recentStartPoint) && twoPointsClose(pointTwo, recentEndPoint)
+		|| twoPointsClose(pointOne, recentEndPoint) && twoPointsClose(pointTwo, recentStartPoint))
+	{
+		updateRecentPoints(pointOne, pointTwo);
 		return true;
 	}
 

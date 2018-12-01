@@ -118,6 +118,7 @@ SlamHelper::depthTo2DimAdjusted(cv::Mat depthImage)
 cv::Mat
 SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 {
+	frameTracker++;
 	cv::Mat fullRepresentation = cv::Mat(cv::Size(1600, 800), CV_8UC3, cv::Scalar(0, 0, 0));
 
 	cv::Mat depthCopy;
@@ -158,44 +159,33 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 		{
 			if (i + 1 - currentStartX >= minPointsInLine)
 			{
-				//traditionalFeatures.push_back(std::make_tuple(cv::Point(currentStartX, 255 - currentStartDepth), cv::Point(i, 255 - currentDepthRef)));
-
 				cv::Point* newStartPoint = new cv::Point(currentStartX, 255 - currentStartDepth);
 				cv::Point* newEndPoint = new cv::Point(i, 255 - currentDepthRef);
-
-				std::stringstream dispText;
-				dispText << std::setfill('0') << std::setw(3) << featureNameIterator++;
-				DepthFeature* currentFeature = new DepthFeature(dispText.str(), newStartPoint, newEndPoint, NULL, NULL);
-				newFeatures.push_back(currentFeature);
+				// TODO Move up linking old feature here
+				bool newFeature = true;
+				for (DepthFeature* existingFeature : existingFeatures)
+				{
+					if (existingFeature->recentCloseToNewFeature(newStartPoint, newEndPoint))
+					{
+						newFeature = false;
+						newFeatures.push_back(existingFeature);
+						break;
+					}
+				}
+				if (newFeature)
+				{
+					std::stringstream dispText;
+					dispText << std::setfill('0') << std::setw(3) << featureNameIterator++;
+					DepthFeature* currentFeature = new DepthFeature(dispText.str(), newStartPoint, newEndPoint, NULL, NULL, frameTracker);
+					newFeatures.push_back(currentFeature);
+					existingFeatures.push_back(currentFeature);
+				}
 			}
 			currentStartX = i + 1;
 			currentStartDepth = depthImage.at<uchar>(rowOfInterest, currentStartX);
 			currentDepthRef = currentStartDepth;
 		}
 	}
-
-
-	//Link old and new features
-	for (DepthFeature* newFeature : newFeatures)
-	{
-		bool addNewFeatureToExisting = true;
-		for (DepthFeature* existingFeature : existingFeatures)
-		{
-			if (newFeature->closeToExistingFeatureRecent(existingFeature))
-			{
-				// TODO Update existing feature
-				addNewFeatureToExisting = false;
-				break;
-			}
-		}
-
-		// Add new feature to existing features
-		if (addNewFeatureToExisting)
-		{
-			existingFeatures.push_back(newFeature);
-		}
-	}
-
 
 	// highlight locations of features
 	cv::Point* startPoint;
