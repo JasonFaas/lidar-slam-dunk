@@ -16,13 +16,18 @@ DepthFeature::DepthFeature(
 	int frame)
 {
 	featureName = name;
+
+	//original and recent info initialized as same
 	origStartPoint = start;
 	origEndPoint = end;
+	originalFrame = frame;
+	
 	recentStartPoint = start;
 	recentEndPoint = end;
+	recentFrame = frame;
+
 	leftNeighbor = left;
 	rightNeighbor = right;
-	originalFrame = frame;
 }
 
 DepthFeature::~DepthFeature()
@@ -56,32 +61,17 @@ DepthFeature::twoPointsClose(cv::Point* first, cv::Point* second)
 }
 
 bool
-DepthFeature::closeToExistingFeatureRecent(DepthFeature * existingFeature)
+DepthFeature::recentCloseToNewFeature(cv::Point* pointOne, cv::Point* pointTwo, int frame)
 {
-	cv::Point * pointOne;
-	cv::Point * pointTwo;
-	std::tie(pointOne, pointTwo) = existingFeature->getRecentPoints();
+	// TODO consider retiring DepthFeature after 3 frames, not 1
+	if (frame - 1 != recentFrame)
+		return false;
 
 	// TODO add edge check
 	if (twoPointsClose(pointOne, recentStartPoint) && twoPointsClose(pointTwo, recentEndPoint)
 		|| twoPointsClose(pointOne, recentEndPoint) && twoPointsClose(pointTwo, recentStartPoint))
 	{
-		// Update existing recentPoints and new featureName
-		existingFeature->updateRecentPoints(recentStartPoint, recentEndPoint);
-		featureName = existingFeature->getFeatureName();
-		return true;
-	}
-
-	return false;
-}
-
-bool
-DepthFeature::recentCloseToNewFeature(cv::Point* pointOne, cv::Point* pointTwo)
-{
-	// TODO add edge check
-	if (twoPointsClose(pointOne, recentStartPoint) && twoPointsClose(pointTwo, recentEndPoint)
-		|| twoPointsClose(pointOne, recentEndPoint) && twoPointsClose(pointTwo, recentStartPoint))
-	{
+		recentFrame = frame;
 		updateRecentPoints(pointOne, pointTwo);
 		return true;
 	}

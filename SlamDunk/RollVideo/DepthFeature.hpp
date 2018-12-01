@@ -10,8 +10,7 @@ class DepthFeature
 		DepthFeature(std::string name, cv::Point* start, cv::Point* end, DepthFeature* left, DepthFeature* right, int frame);
 		~DepthFeature();
 
-		bool closeToExistingFeatureRecent(DepthFeature * existingFeature); // TODO Delete me after 'recentCloseToNewFeature' working
-		bool recentCloseToNewFeature(cv::Point* pointOne, cv::Point* pointTwo);
+		bool recentCloseToNewFeature(cv::Point* pointOne, cv::Point* pointTwo, int frame);
 		std::tuple<cv::Point *, cv::Point *> getRecentPoints();
 		void updateRecentPoints(cv::Point * start, cv::Point * end);
 
@@ -19,15 +18,18 @@ class DepthFeature
 
 		bool unitTestsHere();
 
+
+
 	private:
 		std::string featureName = "empty";
 		cv::Point* origStartPoint = NULL;
 		cv::Point* origEndPoint = NULL;
+		int originalFrame = -1;
 		cv::Point* recentStartPoint = NULL;
 		cv::Point* recentEndPoint = NULL;
+		int recentFrame = -1;
 		DepthFeature* leftNeighbor = NULL;
 		DepthFeature* rightNeighbor = NULL;
-		int originalFrame = -1;
 
 		bool twoPointsClose(cv::Point* first, cv::Point* second);
 };

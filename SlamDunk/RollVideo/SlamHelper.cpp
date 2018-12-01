@@ -165,7 +165,7 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 				bool newFeature = true;
 				for (DepthFeature* existingFeature : existingFeatures)
 				{
-					if (existingFeature->recentCloseToNewFeature(newStartPoint, newEndPoint))
+					if (existingFeature->recentCloseToNewFeature(newStartPoint, newEndPoint, frameTracker))
 					{
 						newFeature = false;
 						newFeatures.push_back(existingFeature);
