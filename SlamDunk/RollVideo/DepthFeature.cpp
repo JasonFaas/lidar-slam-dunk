@@ -49,18 +49,19 @@ DepthFeature::twoPointsClose(cv::Point* first, cv::Point* second)
 }
 
 bool
-DepthFeature::closeToAnotherFeatureRecent(DepthFeature * anotherFeature)
+DepthFeature::closeToExistingFeatureRecent(DepthFeature * existingFeature)
 {
 	cv::Point * pointOne;
 	cv::Point * pointTwo;
-	std::tie(pointOne, pointTwo) = anotherFeature->getRecentPoints();
+	std::tie(pointOne, pointTwo) = existingFeature->getRecentPoints();
 
 	// TODO add edge check
 	if (twoPointsClose(pointOne, recentStartPoint) && twoPointsClose(pointTwo, recentEndPoint)
 		|| twoPointsClose(pointOne, recentEndPoint) && twoPointsClose(pointTwo, recentStartPoint))
 	{
-		// Update recent points
-		anotherFeature->updateRecentPoints(recentStartPoint, recentEndPoint);
+		// Update existing recentPoints and new featureName
+		existingFeature->updateRecentPoints(recentStartPoint, recentEndPoint);
+		featureName = existingFeature->getFeatureName();
 		return true;
 	}
 
@@ -78,4 +79,10 @@ std::tuple<cv::Point *, cv::Point *>
 DepthFeature::getRecentPoints()
 {
 	return std::make_tuple(recentStartPoint, recentEndPoint);
+}
+
+std::string
+DepthFeature::getFeatureName()
+{
+	return featureName;
 }

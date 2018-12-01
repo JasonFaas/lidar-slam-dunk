@@ -129,7 +129,8 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 	const int featureLookAheadMax = 4;
 	const int depthRangeAllowable = 4;
 	const int minPointsInLine = 20;
-	std::vector<std::tuple<cv::Point, cv::Point>> v = {};
+	//std::vector<std::tuple<cv::Point, cv::Point>> traditionalFeatures = {};
+	std::vector<DepthFeature*> newFeatures = {};
 
 	int currentStartX = 0;
 	int currentStartDepth = depthImage.at<uchar>(rowOfInterest, currentStartX);
@@ -157,7 +158,15 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 		{
 			if (i + 1 - currentStartX >= minPointsInLine)
 			{
-				v.push_back(std::make_tuple(cv::Point(currentStartX, 255 - currentStartDepth), cv::Point(i, 255 - currentDepthRef)));
+				//traditionalFeatures.push_back(std::make_tuple(cv::Point(currentStartX, 255 - currentStartDepth), cv::Point(i, 255 - currentDepthRef)));
+
+				cv::Point* newStartPoint = new cv::Point(currentStartX, 255 - currentStartDepth);
+				cv::Point* newEndPoint = new cv::Point(i, 255 - currentDepthRef);
+
+				std::stringstream dispText;
+				dispText << std::setfill('0') << std::setw(2) << featureNameIterator++;
+				DepthFeature* currentFeature = new DepthFeature(dispText.str(), newStartPoint, newEndPoint, NULL, NULL);
+				newFeatures.push_back(currentFeature);
 			}
 			currentStartX = i + 1;
 			currentStartDepth = depthImage.at<uchar>(rowOfInterest, currentStartX);
@@ -165,40 +174,14 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 		}
 	}
 
-	// highlight locations of features
-	cv::Point startPoint, endPoint;
-	int iterator = 1;
-	std::vector<DepthFeature*> newFeatures = {};
-	for (std::tuple<cv::Point, cv::Point> pointTuple : v) 
-	{	
-		std::tie(startPoint, endPoint) = pointTuple;
 
-		std::stringstream dispText;
-		dispText << std::setfill('0') << std::setw(2) << iterator++;
-		// Overhead Representaiton
-		cv::line(overheadCopy, startPoint, endPoint, cv::Scalar(180), 3, 8, 0);
-		cv::putText(overheadCopy, dispText.str(), cv::Point(startPoint.x, startPoint.y + 40), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(200));
-		// Depth Representation
-		cv::line(depthCopy, cv::Point(startPoint.x, rowOfInterest), cv::Point(endPoint.x, rowOfInterest), cv::Scalar(0), 3, 8, 0);
-		cv::putText(depthCopy, dispText.str(), cv::Point(startPoint.x, rowOfInterest + 40), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(0));
-		// Full Representation
-		// TODO: This will be more complicated for actual feature tracking over multiple frames
-		cv::line(fullRepresentation, cv::Point(startPoint.x + 400, startPoint.y + 100), cv::Point(endPoint.x + 400, endPoint.y + 100), cv::Scalar(180, 180, 180), 3, 8, 0);
-		cv::circle(fullRepresentation, cv::Point(400 + DEPTH_WIDTH / 2, 100 + 256), 4, cv::Scalar(100, 50, 255), -1);
-
-		cv::Point* newStartPoint = new cv::Point(startPoint.x + 400, startPoint.y + 100);
-		cv::Point* newEndPoint = new cv::Point(endPoint.x + 400, endPoint.y + 100);
-		DepthFeature* currentFeature = new DepthFeature(dispText.str(), newStartPoint, newEndPoint, NULL, NULL);
-		newFeatures.push_back(currentFeature);
-	}
-
-	//Link old features to new features
+	//Link old and new features
 	for (DepthFeature* newFeature : newFeatures)
 	{
 		bool addNewFeatureToExisting = true;
 		for (DepthFeature* existingFeature : existingFeatures)
 		{
-			if (newFeature->closeToAnotherFeatureRecent(existingFeature))
+			if (newFeature->closeToExistingFeatureRecent(existingFeature))
 			{
 				// TODO Update existing feature
 				addNewFeatureToExisting = false;
@@ -212,6 +195,27 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 			existingFeatures.push_back(newFeature);
 		}
 	}
+
+
+	// highlight locations of features
+	cv::Point* startPoint;
+	cv::Point* endPoint;
+	for (DepthFeature* newFeature : newFeatures)
+	{	
+		std::tie(startPoint, endPoint) = newFeature->getRecentPoints();
+
+		// Overhead Representaiton
+		cv::line(overheadCopy, cv::Point(startPoint->x, startPoint->y), cv::Point(endPoint->x, endPoint->y), cv::Scalar(180), 3, 8, 0);
+		cv::putText(overheadCopy, newFeature->getFeatureName(), cv::Point(startPoint->x, startPoint->y + 40), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(200));
+		// Depth Representation
+		cv::line(depthCopy, cv::Point(startPoint->x, rowOfInterest), cv::Point(endPoint->x, rowOfInterest), cv::Scalar(0), 3, 8, 0);
+		cv::putText(depthCopy, newFeature->getFeatureName(), cv::Point(startPoint->x, rowOfInterest + 40), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(0));
+		// Full Representation
+		// TODO: This will be more complicated for actual feature tracking over multiple frames
+		cv::line(fullRepresentation, cv::Point(startPoint->x + 400, startPoint->y + 100), cv::Point(endPoint->x + 400, endPoint->y + 100), cv::Scalar(180, 180, 180), 3, 8, 0);
+		cv::circle(fullRepresentation, cv::Point(400 + DEPTH_WIDTH / 2, 100 + 256), 4, cv::Scalar(100, 50, 255), -1);
+	}
+
 
 	std::cout << "Feature Count:\t" << existingFeatures.size() << std::endl;
 

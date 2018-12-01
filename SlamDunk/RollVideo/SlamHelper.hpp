@@ -19,9 +19,11 @@ class SlamHelper
 
 		std::vector<DepthFeature*> existingFeatures;
 
-		int threshVal = 25;
-		int dilation_size = 20;
-		int max_dilation_iterations = 20;
+		int featureNameIterator = 1;
+
+		const int threshVal = 25;
+		const int dilation_size = 20;
+		const int max_dilation_iterations = 20;
 
 		const int COLOR_WIDTH = 1920;
 		const int COLOR_HEIGHT = 1080;

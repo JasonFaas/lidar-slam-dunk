@@ -10,9 +10,11 @@ class DepthFeature
 		DepthFeature(std::string name, cv::Point* start, cv::Point* end, DepthFeature* left, DepthFeature* right);
 		~DepthFeature();
 
-		bool closeToAnotherFeatureRecent(DepthFeature * anotherFeature);
+		bool closeToExistingFeatureRecent(DepthFeature * existingFeature);
 		std::tuple<cv::Point *, cv::Point *> getRecentPoints();
 		void updateRecentPoints(cv::Point * start, cv::Point * end);
+
+		std::string getFeatureName();
 
 		bool unitTestsHere();
 
