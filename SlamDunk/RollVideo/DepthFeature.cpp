@@ -101,6 +101,19 @@ DepthFeature::unitTestsHere()
 		std::cout << "5th" << std::endl;
 		return false;
 	}
+
+	// TODO write test for get robot original location
+	cv::Point fiveTemp = cv::Point(0, 0);
+	cv::Point sixTemp = cv::Point(0, 400);
+	origStartPointAngle = 36.87;
+	origEndPointAngle = 90.0;
+	updateRecentPoints(&fiveTemp, &sixTemp);
+	cv::Point robotOrigLocation = getOrigRobotLocationBasedOnRecentPoints();
+	if (robotOrigLocation.x != 400 && robotOrigLocation.y != 300)
+	{
+		std::cout << "6th:\t" << robotOrigLocation.x << "\tand:\t" << robotOrigLocation.y << std::endl;
+		return false;
+	}
 	
 	return true;
 }
@@ -177,4 +190,26 @@ DepthFeature::featureRecentOnEdge()
 	}
 
 	return false;
+}
+
+cv::Point
+DepthFeature::getOrigRobotLocationBasedOnRecentPoints()
+{
+	double mainLength = twoPointDistance(recentEndPoint, recentStartPoint);
+
+	double newPointAngle = 180 - origEndPointAngle - origStartPointAngle;
+
+	double leftLength = (mainLength / sin(newPointAngle * PI / 180)) * sin(origEndPointAngle * PI / 180);
+	double rightLength = (mainLength / sin(newPointAngle * PI / 180)) * sin(origStartPointAngle * PI / 180);
+
+	double xCord = (pow(leftLength, 2) - pow(rightLength, 2) + pow(mainLength, 2)) / (mainLength * 2);
+
+	std::cout << std::to_string(mainLength) << std::endl;
+	std::cout << std::to_string(newPointAngle) << std::endl;
+	std::cout << std::to_string(leftLength) << std::endl;
+	std::cout << std::to_string(rightLength) << std::endl;
+	std::cout << std::to_string(xCord) << std::endl;
+
+	cv::Point returnPoint = cv::Point((int)std::round(xCord), recentFrame);
+	return returnPoint;
 }

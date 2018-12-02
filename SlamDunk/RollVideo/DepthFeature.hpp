@@ -19,6 +19,7 @@ class DepthFeature
 		bool featureRecentOnEdge();
 
 		double twoPointDistance(cv::Point* first, cv::Point* second);
+		cv::Point getOrigRobotLocationBasedOnRecentPoints();
 
 		bool unitTestsHere();
 

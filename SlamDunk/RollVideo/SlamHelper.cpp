@@ -219,6 +219,10 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 			// right
 			cv::line(fullRepresentation, currRobotPoint, cv::Point(endPoint->x + 400, endPoint->y + 100), cv::Scalar(150, 150, 250), 3, 8, 0);
 
+			// original circle
+			cv::Point originalRobotLocation = newFeature->getOrigRobotLocationBasedOnRecentPoints();
+			cv::circle(fullRepresentation, cv::Point(originalRobotLocation.x, originalRobotLocation.y), 4, cv::Scalar(100, 250, 255), -1);
+
 			firstRobotLocation = false;
 		}
 
