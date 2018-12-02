@@ -107,28 +107,31 @@ DepthFeature::unitTestsHere()
 	cv::Point eightTemp = cv::Point(400, 100);
 	origStartPointAngle = 60;
 	origEndPointAngle = 60;
+	//updateRecentPoints(&eightTemp, &sevenTemp);
+	//updateOriginalPoints(&eightTemp, &sevenTemp);
 	updateRecentPoints(&sevenTemp, &eightTemp);
 	updateOriginalPoints(&sevenTemp, &eightTemp);
 	cv::Point robotOrigLocation1 = getOrigRobotLocationBasedOnRecentPoints();
-	if (robotOrigLocation1.x != 500 || robotOrigLocation1.y != 200)
+	if (robotOrigLocation1.x != 573 || robotOrigLocation1.y != 200)
 	{
 		std::cout << "7th:\t" << robotOrigLocation1.x << "\tand:\t" << robotOrigLocation1.y << std::endl;
 		return false;
 	}
 
 
-	cv::Point fiveTemp = cv::Point(0, 0);
-	cv::Point sixTemp = cv::Point(0, 400);
+	cv::Point fiveTemp = cv::Point(400, 400);
+	cv::Point sixTemp = cv::Point(800, 100);
 	origStartPointAngle = 36.87;
-	origEndPointAngle = 90.0;
+	origEndPointAngle = 90.0 - 36.87;
 	updateRecentPoints(&fiveTemp, &sixTemp);
+	updateOriginalPoints(&fiveTemp, &sixTemp);
 	cv::Point robotOrigLocation2 = getOrigRobotLocationBasedOnRecentPoints();
-	if (robotOrigLocation2.x != 400 || robotOrigLocation2.y != 300)
+	if (robotOrigLocation2.x != 800 || robotOrigLocation2.y != 100)
 	{
 		std::cout << "6th:\t" << robotOrigLocation2.x << "\tand:\t" << robotOrigLocation2.y << std::endl;
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -245,9 +248,9 @@ DepthFeature::getOrigRobotLocationBasedOnRecentPoints()
 	else
 		rotationalAngle = acos((pow(shiftedEndPointZero.x, 2) + pow(mainLength, 2) - pow(shiftedEndPointZero.y, 2)) / (2 * shiftedEndPointZero.x * mainLength)) * 180 / PI;
 
-	double rotationalPointX = (cos(rotationalAngle) * PI / 180) * xCord - (sin(rotationalAngle) * PI / 180) * yCord;
-	double rotationalPointY = (sin(rotationalAngle) * PI / 180) * xCord + (cos(rotationalAngle) * PI / 180) * yCord;
-	cv::Point returnPointRotated = cv::Point((int)std::round(rotationalPointX), (int)std::round(rotationalPointY));
+	double rotationalPointX = cos(rotationalAngle * PI / 180) * xCord - sin(rotationalAngle * PI / 180) * yCord;
+	double rotationalPointY = sin(rotationalAngle * PI / 180) * xCord + cos(rotationalAngle * PI / 180) * yCord;
+	cv::Point returnPointRotated = cv::Point((int)std::round(rotationalPointX) + recentStartPoint->x, (int)std::round(rotationalPointY) + recentStartPoint->y);
 
 	std::cout << "Simple New xCord:\t" << std::to_string(xCord) << std::endl;
 	std::cout << "Simple New yCord:\t" << std::to_string(yCord) << std::endl;
