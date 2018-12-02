@@ -107,14 +107,11 @@ DepthFeature::unitTestsHere()
 	cv::Point eightTemp = cv::Point(400, 100);
 	origStartPointAngle = 60;
 	origEndPointAngle = 60;
-	//updateRecentPoints(&eightTemp, &sevenTemp);
-	//updateOriginalPoints(&eightTemp, &sevenTemp);
 	updateRecentPoints(&sevenTemp, &eightTemp);
-	updateOriginalPoints(&sevenTemp, &eightTemp);
 	cv::Point robotOrigLocation1 = getOrigRobotLocationBasedOnRecentPoints();
-	if (robotOrigLocation1.x != 573 || robotOrigLocation1.y != 200)
+	if (robotOrigLocation1.x != 400 - 173 || robotOrigLocation1.y != 200)
 	{
-		std::cout << "7th:\t" << robotOrigLocation1.x << "\tand:\t" << robotOrigLocation1.y << std::endl;
+		std::cout << "6th:\t" << robotOrigLocation1.x << "\tand:\t" << robotOrigLocation1.y << std::endl;
 		return false;
 	}
 
@@ -124,11 +121,10 @@ DepthFeature::unitTestsHere()
 	origStartPointAngle = 36.87;
 	origEndPointAngle = 90.0 - 36.87;
 	updateRecentPoints(&fiveTemp, &sixTemp);
-	updateOriginalPoints(&fiveTemp, &sixTemp);
 	cv::Point robotOrigLocation2 = getOrigRobotLocationBasedOnRecentPoints();
-	if (robotOrigLocation2.x != 800 || robotOrigLocation2.y != 400)
+	if (robotOrigLocation2.x != 400 || robotOrigLocation2.y != 100)
 	{
-		std::cout << "6th:\t" << robotOrigLocation2.x << "\tand:\t" << robotOrigLocation2.y << std::endl;
+		std::cout << "7th:\t" << robotOrigLocation2.x << "\tand:\t" << robotOrigLocation2.y << std::endl;
 		return false;
 	}
 
@@ -223,16 +219,11 @@ DepthFeature::getOrigRobotLocationBasedOnRecentPoints()
 
 	double newPointAngle = 180 - origEndPointAngle - origStartPointAngle;
 
-	double leftLength = (mainLength / sin(newPointAngle * PI / 180)) * sin(origEndPointAngle * PI / 180);
-	double rightLength = (mainLength / sin(newPointAngle * PI / 180)) * sin(origStartPointAngle * PI / 180);
+	double rightLength = (mainLength / sin(newPointAngle * PI / 180)) * sin(origEndPointAngle * PI / 180);
+	double leftLength = (mainLength / sin(newPointAngle * PI / 180)) * sin(origStartPointAngle * PI / 180);
 
 	double xCord = (pow(leftLength, 2) - pow(rightLength, 2) + pow(mainLength, 2)) / (mainLength * 2);
-
-	double yCord = pow(pow(leftLength, 2) - pow(xCord, 2), 0.5);
-
-
-	cv::Point returnPoint = cv::Point((int)std::round(xCord), (int)std::round(yCord));
-
+	double yCord = -1 * pow(pow(leftLength, 2) - pow(xCord, 2), 0.5);
 
 	// TODO: find angle away from left to right straight that origStartPoint and origEndPoint are at
 	cv::Point shiftedEndPointZero = cv::Point(recentEndPoint->x - recentStartPoint->x, recentEndPoint->y - recentStartPoint->y);
@@ -252,17 +243,13 @@ DepthFeature::getOrigRobotLocationBasedOnRecentPoints()
 	double rotationalPointY = sin(rotationalAngle * PI / 180) * xCord + cos(rotationalAngle * PI / 180) * yCord;
 	cv::Point returnPointRotated = cv::Point((int)std::round(rotationalPointX) + recentStartPoint->x, (int)std::round(rotationalPointY) + recentStartPoint->y);
 
-	std::cout << "\nSimple New xCord:\t" << std::to_string(xCord) << std::endl;
-	std::cout << "Simple New yCord:\t" << std::to_string(yCord) << std::endl;
-	std::cout << "Rotational Angle:\t" << std::to_string((int)rotationalAngle) << std::endl; // TODO THIS IS WRONG
-	std::cout << "Rotated Xcord:\t" << std::to_string(rotationalPointX) << std::endl;
-	std::cout << "Rotated Ycord:\t" << std::to_string(rotationalPointY) << std::endl;
-	std::cout << "Shifted xCord End:\t" << std::to_string(shiftedEndPointZero.x) << std::endl;
-	std::cout << "Shifted yCord End:\t" << std::to_string(shiftedEndPointZero.y) << std::endl;
-	//std::cout << std::to_string(origStartPoint->x) << std::endl;
-	//std::cout << std::to_string(origStartPoint->y) << std::endl;
-	//std::cout << std::to_string(origEndPoint->x) << std::endl;
-	//std::cout << std::to_string(origEndPoint->y) << std::endl;
+	//std::cout << "\nSimple New xCord:\t" << std::to_string(xCord) << std::endl;
+	//std::cout << "Simple New yCord:\t" << std::to_string(yCord) << std::endl;
+	//std::cout << "Rotational Angle:\t" << std::to_string((int)rotationalAngle) << std::endl;
+	//std::cout << "Rotated Xcord:\t" << std::to_string(rotationalPointX) << std::endl;
+	//std::cout << "Rotated Ycord:\t" << std::to_string(rotationalPointY) << std::endl;
+	//std::cout << "Shifted xCord End:\t" << std::to_string(shiftedEndPointZero.x) << std::endl;
+	//std::cout << "Shifted yCord End:\t" << std::to_string(shiftedEndPointZero.y) << std::endl;
 
 	//std::cout << std::to_string(mainLength) << std::endl;
 
