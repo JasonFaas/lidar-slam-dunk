@@ -27,7 +27,7 @@ DepthFeature::DepthFeature(
 	recentFrame = frame;
 
 	// Calculate initial angles
-	cv::Point currRobotPoint = cv::Point(400 + DEPTH_WIDTH / 2, 100 + 256);
+	cv::Point currRobotPoint = cv::Point(DEPTH_WIDTH / 2, 0);
 	int distanceMain = twoPointDistance(origStartPoint, origEndPoint);
 	int distanceLeft = twoPointDistance(origStartPoint, &currRobotPoint);
 	int distanceRight = twoPointDistance(&currRobotPoint, origEndPoint);
@@ -123,6 +123,7 @@ DepthFeature::unitTestsHere()
 	updateRecentPoints(&fiveTemp, &sixTemp);
 	cv::Point robotOrigLocation2 = getOrigRobotLocationBasedOnRecentPoints();
 	if (robotOrigLocation2.x != 400 || robotOrigLocation2.y != 100)
+	//if (robotOrigLocation2.x != 800 || robotOrigLocation2.y != 400)
 	{
 		std::cout << "7th:\t" << robotOrigLocation2.x << "\tand:\t" << robotOrigLocation2.y << std::endl;
 		return false;
@@ -250,6 +251,8 @@ DepthFeature::getOrigRobotLocationBasedOnRecentPoints()
 	//std::cout << "Rotated Ycord:\t" << std::to_string(rotationalPointY) << std::endl;
 	//std::cout << "Shifted xCord End:\t" << std::to_string(shiftedEndPointZero.x) << std::endl;
 	//std::cout << "Shifted yCord End:\t" << std::to_string(shiftedEndPointZero.y) << std::endl;
+	std::cout << "Final xCord:\t" << std::to_string(returnPointRotated.x) << std::endl;
+	std::cout << "Final yCord:\t" << std::to_string(returnPointRotated.y) << std::endl;
 
 	//std::cout << std::to_string(mainLength) << std::endl;
 
