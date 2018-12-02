@@ -109,7 +109,7 @@ DepthFeature::unitTestsHere()
 	origEndPointAngle = 90.0;
 	updateRecentPoints(&fiveTemp, &sixTemp);
 	cv::Point robotOrigLocation = getOrigRobotLocationBasedOnRecentPoints();
-	if (robotOrigLocation.x != 400 && robotOrigLocation.y != 300)
+	if (robotOrigLocation.x != 400 || robotOrigLocation.y != 300)
 	{
 		std::cout << "6th:\t" << robotOrigLocation.x << "\tand:\t" << robotOrigLocation.y << std::endl;
 		return false;
@@ -204,12 +204,8 @@ DepthFeature::getOrigRobotLocationBasedOnRecentPoints()
 
 	double xCord = (pow(leftLength, 2) - pow(rightLength, 2) + pow(mainLength, 2)) / (mainLength * 2);
 
-	std::cout << std::to_string(mainLength) << std::endl;
-	std::cout << std::to_string(newPointAngle) << std::endl;
-	std::cout << std::to_string(leftLength) << std::endl;
-	std::cout << std::to_string(rightLength) << std::endl;
-	std::cout << std::to_string(xCord) << std::endl;
+	double yCord = pow(pow(leftLength, 2) - pow(xCord, 2), 0.5);
 
-	cv::Point returnPoint = cv::Point((int)std::round(xCord), recentFrame);
+	cv::Point returnPoint = cv::Point((int)std::round(xCord), (int)std::round(yCord));
 	return returnPoint;
 }
