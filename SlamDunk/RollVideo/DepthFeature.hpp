@@ -40,6 +40,9 @@ class DepthFeature
 		DepthFeature* rightNeighbor = NULL;
 
 
+		void updateOriginalPoints(cv::Point * start, cv::Point * end);
+
+
 		double origStartPointAngle = -1;
 		double origEndPointAngle = -1;
 

@@ -194,7 +194,6 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 	cv::Point* startPoint;
 	cv::Point* endPoint;
 	cv::Point currRobotPoint = cv::Point(400 + DEPTH_WIDTH / 2, 100 + 256);
-
 	bool firstRobotLocation = true;
 	for (DepthFeature* newFeature : newFeatures)
 	{	
@@ -202,7 +201,7 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 
 
 		//TODO if new feature is existing and non-edge, attempt to update robot position
-		if (newFeature->isOldFeature() && !newFeature->featureRecentOnEdge() && firstRobotLocation)
+		if (newFeature->isOldFeature() && !newFeature->featureRecentOnEdge() && firstRobotLocation && newFeature->getFeatureName() == "005")
 		{
 			// For PoC draw lines and show distances of all three lines
 			// and also show all 3 angles
