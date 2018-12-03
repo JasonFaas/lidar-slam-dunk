@@ -10,13 +10,11 @@ class SlamHelper
 	public:
 		SlamHelper();
 
-		cv::Mat blurGoodDataOverBad(cv::Mat depthImage);
-		cv::Mat depthTo2D(cv::Mat depthImage);
-		cv::Mat depthTo2DimAdjusted(cv::Mat depthImage);
-		cv::Mat linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage);
+		cv::Mat blurGoodDataOverBad(cv::Mat& depthImage);
+		cv::Mat depthTo2D(cv::Mat& depthImage);
+		cv::Mat depthTo2DimAdjusted(cv::Mat& depthImage);
+		cv::Mat linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage);
 	private:
-		cv::Mat depthImage, dilationDst, blackPixelsThreshold, medianBlackPixels, tempDepthImg, maskInv;
-
 		std::vector<DepthFeature*> existingFeatures;
 
 		int featureNameIterator = 1;

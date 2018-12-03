@@ -7,7 +7,7 @@
 class DepthFeature
 {
 	public:
-		DepthFeature(std::string name, cv::Point* start, cv::Point* end, DepthFeature* left, DepthFeature* right, int frame);
+		DepthFeature(std::string name, cv::Point* start, cv::Point* end, int frame);
 		~DepthFeature();
 
 		bool recentCloseToNewFeature(cv::Point* pointOne, cv::Point* pointTwo, int frame);

@@ -12,12 +12,11 @@
 
 SlamHelper::SlamHelper()
 {
-	cv::Mat depthImage, dilationDst, blackPixelsThreshold, medianBlackPixels, tempDepthImg, maskInv;
 	existingFeatures = {};
 }
 
 cv::Mat
-SlamHelper::blurGoodDataOverBad(cv::Mat depthImage) 
+SlamHelper::blurGoodDataOverBad(cv::Mat& depthImage) 
 {
 	cv::Mat depthCopy;
 	depthImage.copyTo(depthCopy);
@@ -45,7 +44,7 @@ SlamHelper::blurGoodDataOverBad(cv::Mat depthImage)
 			}
 		});
 	});
-
+	cv::Mat dilationDst, blackPixelsThreshold, medianBlackPixels, tempDepthImg, maskInv;
 	//blur zero pixel areas
 	for (int i = 0; i < max_dilation_iterations; i++)
 	{
@@ -87,7 +86,7 @@ SlamHelper::blurGoodDataOverBad(cv::Mat depthImage)
 }
 
 cv::Mat
-SlamHelper::depthTo2D(cv::Mat depthImage)
+SlamHelper::depthTo2D(cv::Mat& depthImage)
 {
 	cv::Mat returnImg = cv::Mat(255, depthImage.cols, CV_8UC1, cv::Scalar(0));
 
@@ -100,7 +99,7 @@ SlamHelper::depthTo2D(cv::Mat depthImage)
 }
 
 cv::Mat
-SlamHelper::depthTo2DimAdjusted(cv::Mat depthImage)
+SlamHelper::depthTo2DimAdjusted(cv::Mat& depthImage)
 {
 	cv::Mat returnImg = cv::Mat(255, depthImage.cols, CV_8UC1, cv::Scalar(0));
 
@@ -117,7 +116,7 @@ SlamHelper::depthTo2DimAdjusted(cv::Mat depthImage)
 }
 
 cv::Mat
-SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
+SlamHelper::linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage)
 {
 	frameTracker++;
 	cv::Mat fullRepresentation = cv::Mat(cv::Size(1600, 800), CV_8UC3, cv::Scalar(0, 0, 0));
@@ -178,7 +177,7 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 				{
 					std::stringstream dispText;
 					dispText << std::setfill('0') << std::setw(3) << featureNameIterator++;
-					DepthFeature* currentFeature = new DepthFeature(dispText.str(), newStartPoint, newEndPoint, NULL, NULL, frameTracker);
+					DepthFeature* currentFeature = new DepthFeature(dispText.str(), newStartPoint, newEndPoint, frameTracker);
 					newFeatures.push_back(currentFeature);
 					existingFeatures.push_back(currentFeature);
 				}

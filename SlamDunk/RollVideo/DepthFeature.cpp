@@ -10,9 +10,7 @@
 DepthFeature::DepthFeature(
 	std::string name, 
 	cv::Point* start, 
-	cv::Point* end, 
-	DepthFeature* left, 
-	DepthFeature* right,
+	cv::Point* end,
 	int frame)
 {
 	featureName = name;
@@ -28,14 +26,14 @@ DepthFeature::DepthFeature(
 
 	// Calculate initial angles
 	cv::Point currRobotPoint = cv::Point(DEPTH_WIDTH / 2, 0);
-	int distanceMain = twoPointDistance(origStartPoint, origEndPoint);
-	int distanceLeft = twoPointDistance(origStartPoint, &currRobotPoint);
-	int distanceRight = twoPointDistance(&currRobotPoint, origEndPoint);
-	int threeSides[3];
+	double distanceMain = twoPointDistance(origStartPoint, origEndPoint);
+	double distanceLeft = twoPointDistance(origStartPoint, &currRobotPoint);
+	double distanceRight = twoPointDistance(&currRobotPoint, origEndPoint);
+	double threeSides[3];
 	threeSides[0] = distanceMain;
 	threeSides[1] = distanceLeft;
 	threeSides[2] = distanceRight;
-	int perimeter = threeSides[2] + threeSides[1] + threeSides[0];
+	double perimeter = threeSides[2] + threeSides[1] + threeSides[0];
 	for (int i = 0; i < 3; i++)
 	{
 		// IF a single side is longer than the other 2, recent recent frames so that feature is retired after one frame
@@ -57,12 +55,6 @@ DepthFeature::DepthFeature(
 
 	if (featureRecentOnEdge())
 		recentFrame = -1;
-
-	leftNeighbor = left;
-	rightNeighbor = right;
-
-	//verify robot location on init was for test purposes
-	//getOrigRobotLocationBasedOnRecentPoints();
 }
 
 DepthFeature::~DepthFeature()

@@ -75,7 +75,7 @@ bool runAllUnitTestsHere()
 {
 	cv::Point testFirst = cv::Point(10, 10);
 	cv::Point testSecond = cv::Point(20, 20);
-	DepthFeature * testDepthFeature = new DepthFeature("empty", &testFirst, &testSecond, NULL, NULL, -1);
+	DepthFeature * testDepthFeature = new DepthFeature("empty", &testFirst, &testSecond, -1);
 	if (!testDepthFeature->unitTestsHere())
 	{
 		std::cout << "Error with DepthFeature unit tests" << std::endl;
