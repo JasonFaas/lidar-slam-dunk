@@ -20,7 +20,7 @@ class SlamHelper
 		std::vector<DepthFeature*> existingFeatures;
 
 		int featureNameIterator = 1;
-		int frameTracker = 0;
+		int frameTracker = 1;
 
 		const int threshVal = 25;
 		const int dilation_size = 20;

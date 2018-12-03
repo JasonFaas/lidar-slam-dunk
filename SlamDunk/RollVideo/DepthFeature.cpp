@@ -55,6 +55,9 @@ DepthFeature::DepthFeature(
 		origEndPointAngle = acos(initialPart) * 180 / PI;
 	}
 
+	if (featureRecentOnEdge())
+		recentFrame = -1;
+
 	leftNeighbor = left;
 	rightNeighbor = right;
 
@@ -111,10 +114,10 @@ DepthFeature::unitTestsHere()
 	origStartPointAngle = 60;
 	origEndPointAngle = 60;
 	updateRecentPoints(&sevenTemp, &eightTemp);
-	cv::Point robotOrigLocation1 = getOrigRobotLocationBasedOnRecentPoints();
-	if (robotOrigLocation1.x != 400 - 173 || robotOrigLocation1.y != 200)
+	cv::Point* robotOrigLocation1 = getOrigRobotLocationBasedOnRecentPoints();
+	if (robotOrigLocation1->x != 400 - 173 || robotOrigLocation1->y != 200)
 	{
-		std::cout << "6th:\t" << robotOrigLocation1.x << "\tand:\t" << robotOrigLocation1.y << std::endl;
+		std::cout << "6th:\t" << robotOrigLocation1->x << "\tand:\t" << robotOrigLocation1->y << std::endl;
 		return false;
 	}
 
@@ -124,11 +127,11 @@ DepthFeature::unitTestsHere()
 	origEndPointAngle = 36.87;
 	origStartPointAngle = 90.0 - 36.87;
 	updateRecentPoints(&fiveTemp, &sixTemp);
-	cv::Point robotOrigLocation2 = getOrigRobotLocationBasedOnRecentPoints();
-	if (robotOrigLocation2.x != 400 || robotOrigLocation2.y != 100)
+	cv::Point* robotOrigLocation2 = getOrigRobotLocationBasedOnRecentPoints();
+	if (robotOrigLocation2->x != 400 || robotOrigLocation2->y != 100)
 	//if (robotOrigLocation2.x != 800 || robotOrigLocation2.y != 400)
 	{
-		std::cout << "7th:\t" << robotOrigLocation2.x << "\tand:\t" << robotOrigLocation2.y << std::endl;
+		std::cout << "7th:\t" << robotOrigLocation2->x << "\tand:\t" << robotOrigLocation2->y << std::endl;
 		return false;
 	}
 	
@@ -203,6 +206,12 @@ DepthFeature::isOldFeature()
 }
 
 bool
+DepthFeature::isRecentFeature()
+{
+	return recentFrame > originalFrame;
+}
+
+bool
 DepthFeature::featureRecentOnEdge()
 {
 	int nearEdgeMax = 10;
@@ -216,7 +225,7 @@ DepthFeature::featureRecentOnEdge()
 	return false;
 }
 
-cv::Point
+cv::Point*
 DepthFeature::getOrigRobotLocationBasedOnRecentPoints()
 {
 	double mainLength = twoPointDistance(recentEndPoint, recentStartPoint);
@@ -251,7 +260,7 @@ DepthFeature::getOrigRobotLocationBasedOnRecentPoints()
 
 	double rotationalPointX = cos(rotationalAngle * PI / 180) * xCord - sin(rotationalAngle * PI / 180) * yCord;
 	double rotationalPointY = sin(rotationalAngle * PI / 180) * xCord + cos(rotationalAngle * PI / 180) * yCord;
-	cv::Point returnPointRotated = cv::Point((int)std::round(rotationalPointX) + recentStartPoint->x, (int)std::round(rotationalPointY) + recentStartPoint->y);
+	cv::Point* returnPointRotated = new cv::Point((int)std::round(rotationalPointX) + recentStartPoint->x, (int)std::round(rotationalPointY) + recentStartPoint->y);
 
 	// Print out info if initial robot is not close to where it should be
 	//if (abs(returnPointRotated.x - DEPTH_WIDTH / 2) > 10 || abs(returnPointRotated.y) > 10)

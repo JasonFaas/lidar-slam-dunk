@@ -16,10 +16,11 @@ class DepthFeature
 
 		std::string getFeatureName();
 		bool isOldFeature();
+		bool isRecentFeature();
 		bool featureRecentOnEdge();
 
 		double twoPointDistance(cv::Point* first, cv::Point* second);
-		cv::Point getOrigRobotLocationBasedOnRecentPoints();
+		cv::Point* getOrigRobotLocationBasedOnRecentPoints();
 
 		bool unitTestsHere();
 

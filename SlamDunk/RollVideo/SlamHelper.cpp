@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <iomanip>
 #include "DepthFeature.hpp"
+#include <numeric>
 
 #define PI 3.14159265
 
@@ -195,32 +196,40 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 	cv::Point* startPoint;
 	cv::Point* endPoint;
 	cv::Point currRobotPoint = cv::Point(totalXOffset + DEPTH_WIDTH / 2, totalYOffset);
+
+	std::vector<int> previousRobotGuessX = {};
+	std::vector<int> previousRobotGuessY = {};
 	for (DepthFeature* newFeature : newFeatures)
 	{	
 		std::tie(startPoint, endPoint) = newFeature->getRecentPoints();
 
 
 		//TODO if new feature is existing and non-edge, attempt to update robot position
-		if (newFeature->isOldFeature() && !newFeature->featureRecentOnEdge())
+		if (newFeature->isRecentFeature())
 		{
 			// For PoC draw lines and show distances of all three lines
 			// and also show all 3 angles
 			// for RECENT
-			int distanceMain = newFeature->twoPointDistance(startPoint, endPoint);
-			int distanceLeft = newFeature->twoPointDistance(startPoint, &currRobotPoint);
-			int distanceRight = newFeature->twoPointDistance(&currRobotPoint, endPoint);
+			int distanceMain = (int)std::round(newFeature->twoPointDistance(startPoint, endPoint));
+			int distanceLeft = (int)std::round(newFeature->twoPointDistance(startPoint, &currRobotPoint));
+			int distanceRight = (int)std::round(newFeature->twoPointDistance(&currRobotPoint, endPoint));
 			cv::putText(fullRepresentation, std::to_string(distanceMain), cv::Point(startPoint->x + totalXOffset, startPoint->y - 40 + totalYOffset), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(250, 150, 150));
 			cv::putText(fullRepresentation, std::to_string(distanceLeft), cv::Point(startPoint->x + totalXOffset - 50, startPoint->y + 40 + totalYOffset), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(150, 250, 150));
 			cv::putText(fullRepresentation, std::to_string(distanceRight), cv::Point(endPoint->x + totalXOffset + 50, endPoint->y + 40 + totalYOffset), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(150, 150, 250));
-
 			// left
 			cv::line(fullRepresentation, cv::Point(startPoint->x + totalXOffset, startPoint->y + totalYOffset), currRobotPoint, cv::Scalar(150, 250, 150), 3, 8, 0);
 			// right
 			cv::line(fullRepresentation, currRobotPoint, cv::Point(endPoint->x + totalXOffset, endPoint->y + totalYOffset), cv::Scalar(150, 150, 250), 3, 8, 0);
 
-			// original circle
-			cv::Point originalRobotLocation = newFeature->getOrigRobotLocationBasedOnRecentPoints();
-			cv::circle(fullRepresentation, cv::Point(originalRobotLocation.x + totalXOffset, originalRobotLocation.y + totalYOffset), 4, cv::Scalar(100, 250, 255), -1);
+			// original robot position
+			cv::Point* originalRobotLocation = newFeature->getOrigRobotLocationBasedOnRecentPoints();
+
+			std::cout << std::to_string(originalRobotLocation->x) << std::endl;
+			std::cout << std::to_string(originalRobotLocation->y) << std::endl;
+
+			previousRobotGuessX.push_back(originalRobotLocation->x);
+			previousRobotGuessY.push_back(originalRobotLocation->y);
+			//cv::circle(fullRepresentation, cv::Point(originalRobotLocation->x + totalXOffset, originalRobotLocation->y + totalYOffset), 4, cv::Scalar(100, 250, 255), -1);
 		}
 
 
@@ -236,6 +245,26 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 		cv::circle(fullRepresentation, currRobotPoint, 4, cv::Scalar(100, 50, 255), -1);
 	}
 
+	if (previousRobotGuessX.size() > 0)
+	{
+		int robotGuessX = 0;
+		int robotGuessY = 0;
+		int robotGuesses = previousRobotGuessX.size();
+
+		std::for_each(previousRobotGuessX.begin(), previousRobotGuessX.end(), [&](int n) {
+			robotGuessX += n;
+		});
+		std::for_each(previousRobotGuessY.begin(), previousRobotGuessY.end(), [&](int n) {
+			robotGuessY += n;
+		});
+		int yFinal = (int)std::round(robotGuessY / robotGuesses + totalYOffset);
+
+		cv::Point robotEstimation = cv::Point((int)std::round(robotGuessX) / robotGuesses + totalXOffset, yFinal);
+		cv::circle(fullRepresentation, robotEstimation, 4, cv::Scalar(250, 250, 100), -1);
+	}
+	else {
+		std::cout << "Maybe Later" << std::endl;
+	}
 
 	std::cout << "Feature Count:\t" << existingFeatures.size() << std::endl;
 
