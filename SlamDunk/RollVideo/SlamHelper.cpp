@@ -223,10 +223,6 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 
 			// original robot position
 			cv::Point* originalRobotLocation = newFeature->getOrigRobotLocationBasedOnRecentPoints();
-
-			std::cout << std::to_string(originalRobotLocation->x) << std::endl;
-			std::cout << std::to_string(originalRobotLocation->y) << std::endl;
-
 			previousRobotGuessX.push_back(originalRobotLocation->x);
 			previousRobotGuessY.push_back(originalRobotLocation->y);
 			//cv::circle(fullRepresentation, cv::Point(originalRobotLocation->x + totalXOffset, originalRobotLocation->y + totalYOffset), 4, cv::Scalar(100, 250, 255), -1);
@@ -251,10 +247,10 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 		int robotGuessY = 0;
 		int robotGuesses = previousRobotGuessX.size();
 
-		std::for_each(previousRobotGuessX.begin(), previousRobotGuessX.end(), [&](int n) {
+		Concurrency::parallel_for_each(previousRobotGuessX.begin(), previousRobotGuessX.end(), [&](int n) {
 			robotGuessX += n;
 		});
-		std::for_each(previousRobotGuessY.begin(), previousRobotGuessY.end(), [&](int n) {
+		Concurrency::parallel_for_each(previousRobotGuessY.begin(), previousRobotGuessY.end(), [&](int n) {
 			robotGuessY += n;
 		});
 		int yFinal = (int)std::round(robotGuessY / robotGuesses + totalYOffset);
