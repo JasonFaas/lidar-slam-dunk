@@ -58,7 +58,8 @@ DepthFeature::DepthFeature(
 	leftNeighbor = left;
 	rightNeighbor = right;
 
-	getOrigRobotLocationBasedOnRecentPoints();
+	//verify robot location on init was for test purposes
+	//getOrigRobotLocationBasedOnRecentPoints();
 }
 
 DepthFeature::~DepthFeature()
@@ -154,7 +155,6 @@ DepthFeature::twoPointDistance(cv::Point* first, cv::Point* second)
 bool
 DepthFeature::recentCloseToNewFeature(cv::Point* pointOne, cv::Point* pointTwo, int frame)
 {
-	// TODO consider retiring DepthFeature after 3 frames, not 1
 	if (frame - 1 != recentFrame)
 		return false;
 
