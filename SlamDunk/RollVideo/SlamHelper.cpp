@@ -92,7 +92,7 @@ SlamHelper::depthTo2D(cv::Mat depthImage)
 
 	int rowOfInterest = depthImage.rows / 2;
 	Concurrency::parallel_for(0, depthImage.cols, 1, [&](int n) {
-		returnImg.at<uchar>(255 - depthImage.at<uchar>(rowOfInterest, n), n) = 255;
+		returnImg.at<uchar>(depthImage.at<uchar>(rowOfInterest, n), n) = 255;
 	});
 
 	return returnImg;
@@ -109,14 +109,14 @@ SlamHelper::depthTo2DimAdjusted(cv::Mat depthImage)
 		double angleToCos = abs(90.0 - 55.0 - ((double)n) / 7.252);
 		double valueToSet = depthAtROI * cos(angleToCos * PI / 180.0);
 		//std::cout << "what:\t" << (int)depthAtROI << "\tmorewhat:\t" << (int)angleToCos << "\tmorewhat:\t" << (int)valueToSet << std::endl;
-		returnImg.at<uchar>(255 - (int)valueToSet, n) = 255;
+		returnImg.at<uchar>((int)std::round(valueToSet), n) = 255;
 	});
 
 	return returnImg;
 }
 
 cv::Mat
-SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImageFlipped)
+SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImage)
 {
 	frameTracker++;
 	cv::Mat fullRepresentation = cv::Mat(cv::Size(1600, 800), CV_8UC3, cv::Scalar(0, 0, 0));
@@ -124,9 +124,9 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImageFlipp
 	int totalYOffset = 100;
 
 	cv::Mat depthCopy;
-	cv::Mat overheadFlippedCopy;
+	cv::Mat overheadCopy;
 	depthImage.copyTo(depthCopy);
-	overheadImageFlipped.copyTo(overheadFlippedCopy);
+	overheadImage.copyTo(overheadCopy);
 	
 	int rowOfInterest = depthImage.rows / 2;
 	const int featureLookAheadMax = 3;
@@ -202,7 +202,7 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImageFlipp
 
 
 		//TODO if new feature is existing and non-edge, attempt to update robot position
-		if (newFeature->isOldFeature() && !newFeature->featureRecentOnEdge() && firstRobotLocation && newFeature->getFeatureName() == "005")
+		if (newFeature->isOldFeature() && !newFeature->featureRecentOnEdge() && newFeature->getFeatureName() == "005")
 		{
 			// For PoC draw lines and show distances of all three lines
 			// and also show all 3 angles
@@ -228,8 +228,8 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImageFlipp
 
 
 		// Overhead Representaiton
-		cv::line(overheadFlippedCopy, cv::Point(startPoint->x, 255 - startPoint->y), cv::Point(endPoint->x, 255 - endPoint->y), cv::Scalar(180), 3, 8, 0);
-		cv::putText(overheadFlippedCopy, newFeature->getFeatureName(), cv::Point(startPoint->x, 255 - startPoint->y + 40), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(200));
+		cv::line(overheadCopy, cv::Point(startPoint->x, startPoint->y), cv::Point(endPoint->x, endPoint->y), cv::Scalar(180), 3, 8, 0);
+		cv::putText(overheadCopy, newFeature->getFeatureName(), cv::Point(startPoint->x, startPoint->y + 40), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(200));
 		// Depth Representation
 		cv::line(depthCopy, cv::Point(startPoint->x, rowOfInterest), cv::Point(endPoint->x, rowOfInterest), cv::Scalar(0), 3, 8, 0);
 		cv::putText(depthCopy, newFeature->getFeatureName(), cv::Point(startPoint->x, rowOfInterest + 40), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(0));
@@ -242,8 +242,8 @@ SlamHelper::linesOnCommonFeatures(cv::Mat depthImage, cv::Mat overheadImageFlipp
 
 	std::cout << "Feature Count:\t" << existingFeatures.size() << std::endl;
 
-	cv::namedWindow("Overhead Flipped Extra");
-	imshow("Overhead Flipped Extra", overheadFlippedCopy);
+	cv::namedWindow("Overhead Extra");
+	imshow("Overhead Extra", overheadCopy);
 	cv::namedWindow("Depth Extra");
 	imshow("Depth Extra", depthCopy);
 	cv::namedWindow("Full Representation");

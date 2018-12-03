@@ -51,15 +51,15 @@ int main()
 		cv::namedWindow("Bad Data Blurred Out");
 		imshow("Bad Data Blurred Out", depthBlurred);
 
-		cv::Mat depthTo2dFlipped = slamHelper->depthTo2D(depthBlurred);
-		cv::namedWindow("Depth to 2D Flipped");
-		imshow("Depth to 2D Flipped", depthTo2dFlipped);
+		cv::Mat depthTo2d = slamHelper->depthTo2D(depthBlurred);
+		cv::namedWindow("Depth to 2D");
+		imshow("Depth to 2D", depthTo2d);
 
-		cv::Mat depthTo2dAdjustedFlippe = slamHelper->depthTo2DimAdjusted(depthBlurred);
-		cv::namedWindow("Depth to 2D Adjusted Flipped");
-		imshow("Depth to 2D Adjusted Flipped", depthTo2dAdjustedFlippe);
+		cv::Mat depthTo2dAdjusted = slamHelper->depthTo2DimAdjusted(depthBlurred);
+		cv::namedWindow("Depth to 2D Adjusted");
+		imshow("Depth to 2D Adjusted", depthTo2dAdjusted);
 
-		cv::Mat startAndEndPoints = slamHelper->linesOnCommonFeatures(depthBlurred, depthTo2dFlipped);
+		cv::Mat startAndEndPoints = slamHelper->linesOnCommonFeatures(depthBlurred, depthTo2d);
 		
 
 		char waitKey = cv::waitKey(0);
