@@ -163,7 +163,7 @@ SlamHelper::linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage)
 				cv::Point newStartPoint(currentStartX,currentStartDepth);
 				cv::Point newEndPoint(i, currentDepthRef);
 				bool newFeature = true;
-				for (DepthFeature existingFeature : existingFeatures)
+				for (DepthFeature& existingFeature : existingFeatures)
 				{
 					if (existingFeature.recentCloseToNewFeature(newStartPoint, newEndPoint, frameTracker))
 					{
@@ -197,7 +197,7 @@ SlamHelper::linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage)
 
 	std::vector<int> previousRobotGuessX = {};
 	std::vector<int> previousRobotGuessY = {};
-	for (DepthFeature newFeature : newFeatures)
+	for (DepthFeature& newFeature : newFeatures)
 	{	
 		std::tie(startPoint, endPoint) = newFeature.getRecentPoints();
 

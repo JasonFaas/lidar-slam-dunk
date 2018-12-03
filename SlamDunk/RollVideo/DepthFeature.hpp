@@ -36,9 +36,6 @@ class DepthFeature
 		cv::Point recentStartPoint = NULL;
 		cv::Point recentEndPoint = NULL;
 		int recentFrame = -1;
-		DepthFeature* leftNeighbor = NULL;
-		DepthFeature* rightNeighbor = NULL;
-
 
 		void updateOriginalPoints(cv::Point& start, cv::Point& end);
 
