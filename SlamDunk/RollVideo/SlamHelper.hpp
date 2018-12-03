@@ -15,7 +15,7 @@ class SlamHelper
 		cv::Mat depthTo2DimAdjusted(cv::Mat& depthImage);
 		cv::Mat linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage);
 	private:
-		std::vector<DepthFeature*> existingFeatures;
+		std::vector<DepthFeature> existingFeatures = {};
 
 		int featureNameIterator = 1;
 		int frameTracker = 1;

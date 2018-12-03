@@ -9,8 +9,8 @@
 
 DepthFeature::DepthFeature(
 	std::string name, 
-	cv::Point* start, 
-	cv::Point* end,
+	cv::Point& start, 
+	cv::Point& end,
 	int frame)
 {
 	featureName = name;
@@ -25,10 +25,10 @@ DepthFeature::DepthFeature(
 	recentFrame = frame;
 
 	// Calculate initial angles
-	cv::Point currRobotPoint = cv::Point(DEPTH_WIDTH / 2, 0);
+	cv::Point currRobotPoint(DEPTH_WIDTH / 2, 0);
 	double distanceMain = twoPointDistance(origStartPoint, origEndPoint);
-	double distanceLeft = twoPointDistance(origStartPoint, &currRobotPoint);
-	double distanceRight = twoPointDistance(&currRobotPoint, origEndPoint);
+	double distanceLeft = twoPointDistance(origStartPoint, currRobotPoint);
+	double distanceRight = twoPointDistance(currRobotPoint, origEndPoint);
 	double threeSides[3];
 	threeSides[0] = distanceMain;
 	threeSides[1] = distanceLeft;
@@ -57,43 +57,38 @@ DepthFeature::DepthFeature(
 		recentFrame = -1;
 }
 
-DepthFeature::~DepthFeature()
-{
-
-}
-
 bool
 DepthFeature::unitTestsHere()
 {
 	int testCount = 0;
-	cv::Point firstTemp = cv::Point(10, 10);
-	cv::Point secondTemp = cv::Point(15, 15);
-	cv::Point thirdTemp = cv::Point(25, 25);
-	cv::Point leftEdgeTemp = cv::Point(4, 25);
-	cv::Point rightEdgeTemp = cv::Point(DEPTH_WIDTH - 3, 25);
-	if (!twoPointsClose(&firstTemp, &secondTemp))
+	cv::Point firstTemp(10, 10);
+	cv::Point secondTemp(15, 15);
+	cv::Point thirdTemp(25, 25);
+	cv::Point leftEdgeTemp(4, 25);
+	cv::Point rightEdgeTemp(DEPTH_WIDTH - 3, 25);
+	if (!twoPointsClose(firstTemp, secondTemp))
 	{
 		std::cout << "1st" << std::endl;
 		return false;
 	}
-	if (twoPointsClose(&firstTemp, &thirdTemp))
+	if (twoPointsClose(firstTemp, thirdTemp))
 	{
 		std::cout << "2nd" << std::endl;
 		return false;
 	}
-	updateRecentPoints(&firstTemp, &leftEdgeTemp);
+	updateRecentPoints(firstTemp, leftEdgeTemp);
 	if (!featureRecentOnEdge())
 	{
 		std::cout << "3rd" << std::endl;
 		return false;
 	}
-	updateRecentPoints(&rightEdgeTemp, &firstTemp);
+	updateRecentPoints(rightEdgeTemp, firstTemp);
 	if (!featureRecentOnEdge())
 	{
 		std::cout << "4th" << std::endl;
 		return false;
 	}
-	updateRecentPoints(&firstTemp, &secondTemp);
+	updateRecentPoints(firstTemp, secondTemp);
 	if (featureRecentOnEdge())
 	{
 		std::cout << "5th" << std::endl;
@@ -101,29 +96,29 @@ DepthFeature::unitTestsHere()
 	}
 
 	// TODO write test for get robot original location
-	cv::Point sevenTemp = cv::Point(400, 300);
-	cv::Point eightTemp = cv::Point(400, 100);
+	cv::Point sevenTemp(400, 300);
+	cv::Point eightTemp(400, 100);
 	origStartPointAngle = 60;
 	origEndPointAngle = 60;
-	updateRecentPoints(&sevenTemp, &eightTemp);
-	cv::Point* robotOrigLocation1 = getOrigRobotLocationBasedOnRecentPoints();
-	if (robotOrigLocation1->x != 400 - 173 || robotOrigLocation1->y != 200)
+	updateRecentPoints(sevenTemp, eightTemp);
+	cv::Point robotOrigLocation1 = getOrigRobotLocationBasedOnRecentPoints();
+	if (robotOrigLocation1.x != 400 - 173 || robotOrigLocation1.y != 200)
 	{
-		std::cout << "6th:\t" << robotOrigLocation1->x << "\tand:\t" << robotOrigLocation1->y << std::endl;
+		std::cout << "6th:\t" << robotOrigLocation1.x << "\tand:\t" << robotOrigLocation1.y << std::endl;
 		return false;
 	}
 
 
-	cv::Point fiveTemp = cv::Point(400, 400);
-	cv::Point sixTemp = cv::Point(800, 100);
+	cv::Point fiveTemp(400, 400);
+	cv::Point sixTemp(800, 100);
 	origEndPointAngle = 36.87;
 	origStartPointAngle = 90.0 - 36.87;
-	updateRecentPoints(&fiveTemp, &sixTemp);
-	cv::Point* robotOrigLocation2 = getOrigRobotLocationBasedOnRecentPoints();
-	if (robotOrigLocation2->x != 400 || robotOrigLocation2->y != 100)
+	updateRecentPoints(fiveTemp, sixTemp);
+	cv::Point robotOrigLocation2 = getOrigRobotLocationBasedOnRecentPoints();
+	if (robotOrigLocation2.x != 400 || robotOrigLocation2.y != 100)
 	//if (robotOrigLocation2.x != 800 || robotOrigLocation2.y != 400)
 	{
-		std::cout << "7th:\t" << robotOrigLocation2->x << "\tand:\t" << robotOrigLocation2->y << std::endl;
+		std::cout << "7th:\t" << robotOrigLocation2.x << "\tand:\t" << robotOrigLocation2.y << std::endl;
 		return false;
 	}
 	
@@ -132,23 +127,24 @@ DepthFeature::unitTestsHere()
 }
 
 bool
-DepthFeature::twoPointsClose(cv::Point* first, cv::Point* second)
+DepthFeature::twoPointsClose(cv::Point& first, cv::Point& second)
 {
-	if (first == NULL || second == NULL)
-		return false;
+	// TODO DELETE BELOW BLOCK COMMENT AFTER VERIFICATION
+	/*if (first == NULL || second == NULL)
+		return false;*/
 
 	double distance = twoPointDistance(first, second);
 	return distance < 16;
 }
 
 double
-DepthFeature::twoPointDistance(cv::Point* first, cv::Point* second)
+DepthFeature::twoPointDistance(cv::Point& first, cv::Point& second)
 {
-	return pow(pow(first->x - second->x, 2) + pow(first->y - second->y, 2), 0.5);
+	return pow(pow(first.x - second.x, 2) + pow(first.y - second.y, 2), 0.5);
 }
 
 bool
-DepthFeature::recentCloseToNewFeature(cv::Point* pointOne, cv::Point* pointTwo, int frame)
+DepthFeature::recentCloseToNewFeature(cv::Point& pointOne, cv::Point& pointTwo, int frame)
 {
 	if (frame - 1 != recentFrame)
 		return false;
@@ -166,20 +162,20 @@ DepthFeature::recentCloseToNewFeature(cv::Point* pointOne, cv::Point* pointTwo, 
 }
 
 void
-DepthFeature::updateRecentPoints(cv::Point * start, cv::Point * end)
+DepthFeature::updateRecentPoints(cv::Point& start, cv::Point& end)
 {
 	recentStartPoint = start;
 	recentEndPoint = end;
 }
 
 void
-DepthFeature::updateOriginalPoints(cv::Point * start, cv::Point * end)
+DepthFeature::updateOriginalPoints(cv::Point& start, cv::Point& end)
 {
 	origStartPoint = start;
 	origEndPoint = end;
 }
 
-std::tuple<cv::Point *, cv::Point *>
+std::tuple<cv::Point, cv::Point>
 DepthFeature::getRecentPoints()
 {
 	return std::make_tuple(recentStartPoint, recentEndPoint);
@@ -207,7 +203,7 @@ bool
 DepthFeature::featureRecentOnEdge()
 {
 	int nearEdgeMax = 10;
-	std::vector<int> verifyPoints = { recentStartPoint->x, recentEndPoint->x };
+	std::vector<int> verifyPoints = { recentStartPoint.x, recentEndPoint.x };
 	for (int point : verifyPoints)
 	{
 		if (point < nearEdgeMax || DEPTH_WIDTH - point < nearEdgeMax)
@@ -217,7 +213,7 @@ DepthFeature::featureRecentOnEdge()
 	return false;
 }
 
-cv::Point*
+cv::Point
 DepthFeature::getOrigRobotLocationBasedOnRecentPoints()
 {
 	double mainLength = twoPointDistance(recentEndPoint, recentStartPoint);
@@ -232,7 +228,7 @@ DepthFeature::getOrigRobotLocationBasedOnRecentPoints()
 	double yCord = -1 * pow(pow(leftLength, 2) - pow(xCord, 2), 0.5);
 
 	// TODO: find angle away from left to right straight that origStartPoint and origEndPoint are at
-	cv::Point shiftedEndPointZero = cv::Point(recentEndPoint->x - recentStartPoint->x, recentEndPoint->y - recentStartPoint->y);
+	cv::Point shiftedEndPointZero(recentEndPoint.x - recentStartPoint.x, recentEndPoint.y - recentStartPoint.y);
 	double rotationalAngle = -1.0;
 	if (shiftedEndPointZero.x == 0 && shiftedEndPointZero.y > 0)
 		rotationalAngle = 90.0;
@@ -252,7 +248,7 @@ DepthFeature::getOrigRobotLocationBasedOnRecentPoints()
 
 	double rotationalPointX = cos(rotationalAngle * PI / 180) * xCord - sin(rotationalAngle * PI / 180) * yCord;
 	double rotationalPointY = sin(rotationalAngle * PI / 180) * xCord + cos(rotationalAngle * PI / 180) * yCord;
-	cv::Point* returnPointRotated = new cv::Point((int)std::round(rotationalPointX) + recentStartPoint->x, (int)std::round(rotationalPointY) + recentStartPoint->y);
+	cv::Point returnPointRotated((int)std::round(rotationalPointX) + recentStartPoint.x, (int)std::round(rotationalPointY) + recentStartPoint.y);
 
 	// Print out info if initial robot is not close to where it should be
 	//if (abs(returnPointRotated.x - DEPTH_WIDTH / 2) > 10 || abs(returnPointRotated.y) > 10)

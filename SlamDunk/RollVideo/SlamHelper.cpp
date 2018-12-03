@@ -12,7 +12,6 @@
 
 SlamHelper::SlamHelper()
 {
-	existingFeatures = {};
 }
 
 cv::Mat
@@ -133,7 +132,7 @@ SlamHelper::linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage)
 	const int depthRangeAllowable = 6;
 	const int minPointsInLine = 15;
 	//std::vector<std::tuple<cv::Point, cv::Point>> traditionalFeatures = {};
-	std::vector<DepthFeature*> newFeatures = {};
+	std::vector<DepthFeature> newFeatures = {};
 
 	int currentStartX = 0;
 	int currentStartDepth = depthImage.at<uchar>(rowOfInterest, currentStartX);
@@ -161,12 +160,12 @@ SlamHelper::linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage)
 		{
 			if (i + 1 - currentStartX >= minPointsInLine)
 			{
-				cv::Point* newStartPoint = new cv::Point(currentStartX,currentStartDepth);
-				cv::Point* newEndPoint = new cv::Point(i, currentDepthRef);
+				cv::Point newStartPoint(currentStartX,currentStartDepth);
+				cv::Point newEndPoint(i, currentDepthRef);
 				bool newFeature = true;
-				for (DepthFeature* existingFeature : existingFeatures)
+				for (DepthFeature existingFeature : existingFeatures)
 				{
-					if (existingFeature->recentCloseToNewFeature(newStartPoint, newEndPoint, frameTracker))
+					if (existingFeature.recentCloseToNewFeature(newStartPoint, newEndPoint, frameTracker))
 					{
 						newFeature = false;
 						newFeatures.push_back(existingFeature);
@@ -177,7 +176,7 @@ SlamHelper::linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage)
 				{
 					std::stringstream dispText;
 					dispText << std::setfill('0') << std::setw(3) << featureNameIterator++;
-					DepthFeature* currentFeature = new DepthFeature(dispText.str(), newStartPoint, newEndPoint, frameTracker);
+					DepthFeature currentFeature(dispText.str(), newStartPoint, newEndPoint, frameTracker);
 					newFeatures.push_back(currentFeature);
 					existingFeatures.push_back(currentFeature);
 				}
@@ -192,51 +191,51 @@ SlamHelper::linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage)
 
 
 	// highlight locations of features
-	cv::Point* startPoint;
-	cv::Point* endPoint;
+	cv::Point startPoint;
+	cv::Point endPoint;
 	cv::Point currRobotPoint = cv::Point(totalXOffset + DEPTH_WIDTH / 2, totalYOffset);
 
 	std::vector<int> previousRobotGuessX = {};
 	std::vector<int> previousRobotGuessY = {};
-	for (DepthFeature* newFeature : newFeatures)
+	for (DepthFeature newFeature : newFeatures)
 	{	
-		std::tie(startPoint, endPoint) = newFeature->getRecentPoints();
+		std::tie(startPoint, endPoint) = newFeature.getRecentPoints();
 
 
 		//TODO if new feature is existing and non-edge, attempt to update robot position
-		if (newFeature->isRecentFeature())
+		if (newFeature.isRecentFeature())
 		{
 			// For PoC draw lines and show distances of all three lines
 			// and also show all 3 angles
 			// for RECENT
-			int distanceMain = (int)std::round(newFeature->twoPointDistance(startPoint, endPoint));
-			int distanceLeft = (int)std::round(newFeature->twoPointDistance(startPoint, &currRobotPoint));
-			int distanceRight = (int)std::round(newFeature->twoPointDistance(&currRobotPoint, endPoint));
-			cv::putText(fullRepresentation, std::to_string(distanceMain), cv::Point(startPoint->x + totalXOffset, startPoint->y - 40 + totalYOffset), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(250, 150, 150));
-			cv::putText(fullRepresentation, std::to_string(distanceLeft), cv::Point(startPoint->x + totalXOffset - 50, startPoint->y + 40 + totalYOffset), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(150, 250, 150));
-			cv::putText(fullRepresentation, std::to_string(distanceRight), cv::Point(endPoint->x + totalXOffset + 50, endPoint->y + 40 + totalYOffset), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(150, 150, 250));
+			int distanceMain = (int)std::round(newFeature.twoPointDistance(startPoint, endPoint));
+			int distanceLeft = (int)std::round(newFeature.twoPointDistance(startPoint, currRobotPoint));
+			int distanceRight = (int)std::round(newFeature.twoPointDistance(currRobotPoint, endPoint));
+			cv::putText(fullRepresentation, std::to_string(distanceMain), cv::Point(startPoint.x + totalXOffset, startPoint.y - 40 + totalYOffset), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(250, 150, 150));
+			cv::putText(fullRepresentation, std::to_string(distanceLeft), cv::Point(startPoint.x + totalXOffset - 50, startPoint.y + 40 + totalYOffset), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(150, 250, 150));
+			cv::putText(fullRepresentation, std::to_string(distanceRight), cv::Point(endPoint.x + totalXOffset + 50, endPoint.y + 40 + totalYOffset), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(150, 150, 250));
 			// left
-			cv::line(fullRepresentation, cv::Point(startPoint->x + totalXOffset, startPoint->y + totalYOffset), currRobotPoint, cv::Scalar(150, 250, 150), 3, 8, 0);
+			cv::line(fullRepresentation, cv::Point(startPoint.x + totalXOffset, startPoint.y + totalYOffset), currRobotPoint, cv::Scalar(150, 250, 150), 3, 8, 0);
 			// right
-			cv::line(fullRepresentation, currRobotPoint, cv::Point(endPoint->x + totalXOffset, endPoint->y + totalYOffset), cv::Scalar(150, 150, 250), 3, 8, 0);
+			cv::line(fullRepresentation, currRobotPoint, cv::Point(endPoint.x + totalXOffset, endPoint.y + totalYOffset), cv::Scalar(150, 150, 250), 3, 8, 0);
 
 			// original robot position
-			cv::Point* originalRobotLocation = newFeature->getOrigRobotLocationBasedOnRecentPoints();
-			previousRobotGuessX.push_back(originalRobotLocation->x);
-			previousRobotGuessY.push_back(originalRobotLocation->y);
+			cv::Point originalRobotLocation = newFeature.getOrigRobotLocationBasedOnRecentPoints();
+			previousRobotGuessX.push_back(originalRobotLocation.x);
+			previousRobotGuessY.push_back(originalRobotLocation.y);
 			//cv::circle(fullRepresentation, cv::Point(originalRobotLocation->x + totalXOffset, originalRobotLocation->y + totalYOffset), 4, cv::Scalar(100, 250, 255), -1);
 		}
 
 
 		// Overhead Representaiton
-		cv::line(overheadCopy, cv::Point(startPoint->x, startPoint->y), cv::Point(endPoint->x, endPoint->y), cv::Scalar(180), 3, 8, 0);
-		cv::putText(overheadCopy, newFeature->getFeatureName(), cv::Point(startPoint->x, startPoint->y + 40), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(200));
+		cv::line(overheadCopy, cv::Point(startPoint.x, startPoint.y), cv::Point(endPoint.x, endPoint.y), cv::Scalar(180), 3, 8, 0);
+		cv::putText(overheadCopy, newFeature.getFeatureName(), cv::Point(startPoint.x, startPoint.y + 40), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(200));
 		// Depth Representation
-		cv::line(depthCopy, cv::Point(startPoint->x, rowOfInterest), cv::Point(endPoint->x, rowOfInterest), cv::Scalar(0), 3, 8, 0);
-		cv::putText(depthCopy, newFeature->getFeatureName(), cv::Point(startPoint->x, rowOfInterest + 40), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(0));
+		cv::line(depthCopy, cv::Point(startPoint.x, rowOfInterest), cv::Point(endPoint.x, rowOfInterest), cv::Scalar(0), 3, 8, 0);
+		cv::putText(depthCopy, newFeature.getFeatureName(), cv::Point(startPoint.x, rowOfInterest + 40), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(0));
 		// Full Representation
 		// TODO: This will be more complicated for actual feature tracking over multiple frames
-		cv::line(fullRepresentation, cv::Point(startPoint->x + totalXOffset, startPoint->y + totalYOffset), cv::Point(endPoint->x + totalXOffset, endPoint->y + totalYOffset), cv::Scalar(180, 180, 180), 3, 8, 0);
+		cv::line(fullRepresentation, cv::Point(startPoint.x + totalXOffset, startPoint.y + totalYOffset), cv::Point(endPoint.x + totalXOffset, endPoint.y + totalYOffset), cv::Scalar(180, 180, 180), 3, 8, 0);
 		cv::circle(fullRepresentation, currRobotPoint, 4, cv::Scalar(100, 50, 255), -1);
 	}
 
