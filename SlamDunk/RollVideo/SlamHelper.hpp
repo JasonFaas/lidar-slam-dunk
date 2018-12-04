@@ -17,7 +17,10 @@ class SlamHelper
 	private:
 		std::vector<DepthFeature> existingFeatures = {};
 		std::vector<DepthFeature> realizeNewFeatureAndLinkExisting(cv::Mat& depthImageRO);
-		void drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat& totalRep, cv::Mat& overheadCopy, cv::Mat& depthCopy);
+		void drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat& overheadCopy, cv::Mat& depthCopy);
+
+
+		cv::Mat totalRep = cv::Mat(cv::Size(1600, 800), CV_8UC3, cv::Scalar(0, 0, 0));
 
 		int featureNameIterator = 1;
 		int frameTracker = 0;

@@ -118,7 +118,6 @@ cv::Mat
 SlamHelper::linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage)
 {
 	frameTracker++;
-	cv::Mat totalRep = cv::Mat(cv::Size(1600, 800), CV_8UC3, cv::Scalar(0, 0, 0));
 
 	cv::Mat depthCopy;
 	cv::Mat overheadCopy;
@@ -126,7 +125,7 @@ SlamHelper::linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage)
 	overheadImage.copyTo(overheadCopy);
 
 	std::vector<DepthFeature> newFeatures = realizeNewFeatureAndLinkExisting(depthImage);
-	drawLotsOfFeaturesV1(newFeatures, totalRep, overheadCopy, depthCopy);
+	drawLotsOfFeaturesV1(newFeatures, overheadCopy, depthCopy);
 
 	std::cout << "Feature Count:\t" << existingFeatures.size() << std::endl;
 	cv::namedWindow("Overhead Extra");
@@ -183,7 +182,7 @@ SlamHelper::realizeNewFeatureAndLinkExisting(cv::Mat& depthImageRO)
 					if (existingFeature.recentCloseToNewFeature(newStartPoint, newEndPoint, frameTracker))
 					{
 						newFeature = false;
-						newFeatures.push_back(existingFeature);
+						//newFeatures.push_back(existingFeature);
 						break;
 					}
 				}
@@ -206,7 +205,7 @@ SlamHelper::realizeNewFeatureAndLinkExisting(cv::Mat& depthImageRO)
 }
 
 void
-SlamHelper::drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat& totalRep, cv::Mat& overheadCopy, cv::Mat& depthCopy)
+SlamHelper::drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat& overheadCopy, cv::Mat& depthCopy)
 {
 	cv::Point startPoint;
 	cv::Point endPoint;
@@ -214,6 +213,16 @@ SlamHelper::drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat
 
 	std::vector<int> previousRobotGuessX = {};
 	std::vector<int> previousRobotGuessY = {};
+
+	// Get new robot position
+	for (DepthFeature& existingFeature : existingFeatures)
+	{
+		// TODO if feature is displayed on current frame and previous frame
+			// TODO then get angle between current location of feature and current location of robot
+
+	}
+
+
 	for (DepthFeature& newFeature : newFeatures)
 	{
 		std::tie(startPoint, endPoint) = newFeature.getRecentPoints();
@@ -222,25 +231,10 @@ SlamHelper::drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat
 		//TODO if new feature is existing and non-edge, attempt to update robot position
 		if (newFeature.isRecentFeature())
 		{
-			// For PoC draw lines and show distances of all three lines
-			// and also show all 3 angles
-			// for RECENT
-			int distanceMain = (int)std::round(newFeature.twoPointDistance(startPoint, endPoint));
-			int distanceLeft = (int)std::round(newFeature.twoPointDistance(startPoint, currRobotPoint));
-			int distanceRight = (int)std::round(newFeature.twoPointDistance(currRobotPoint, endPoint));
-			cv::putText(totalRep, std::to_string(distanceMain), cv::Point(startPoint.x + TOTAL_X_OFFSET, startPoint.y - 40 + TOTAL_Y_OFFSET), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(250, 150, 150));
-			cv::putText(totalRep, std::to_string(distanceLeft), cv::Point(startPoint.x + TOTAL_X_OFFSET - 50, startPoint.y + 40 + TOTAL_Y_OFFSET), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(150, 250, 150));
-			cv::putText(totalRep, std::to_string(distanceRight), cv::Point(endPoint.x + TOTAL_X_OFFSET + 50, endPoint.y + 40 + TOTAL_Y_OFFSET), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(150, 150, 250));
-			// left
-			cv::line(totalRep, cv::Point(startPoint.x + TOTAL_X_OFFSET, startPoint.y + TOTAL_Y_OFFSET), currRobotPoint, cv::Scalar(150, 250, 150), 3, 8, 0);
-			// right
-			cv::line(totalRep, currRobotPoint, cv::Point(endPoint.x + TOTAL_X_OFFSET, endPoint.y + TOTAL_Y_OFFSET), cv::Scalar(150, 150, 250), 3, 8, 0);
-
 			// original robot position
 			cv::Point originalRobotLocation = newFeature.getOrigRobotLocationBasedOnRecentPoints();
 			previousRobotGuessX.push_back(originalRobotLocation.x);
 			previousRobotGuessY.push_back(originalRobotLocation.y);
-			//cv::circle(totalRep, cv::Point(originalRobotLocation->x + TOTAL_X_OFFSET, originalRobotLocation->y + TOTAL_Y_OFFSET), 4, cv::Scalar(100, 250, 255), -1);
 		}
 
 
@@ -251,8 +245,8 @@ SlamHelper::drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat
 		cv::line(depthCopy, cv::Point(startPoint.x, rowOfInterest), cv::Point(endPoint.x, rowOfInterest), cv::Scalar(0), 3, 8, 0);
 		cv::putText(depthCopy, newFeature.getFeatureName(), cv::Point(startPoint.x, rowOfInterest + 40), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(0));
 		// Full Representation
-		// TODO: This will be more complicated for actual feature tracking over multiple frames
-		cv::line(totalRep, cv::Point(startPoint.x + TOTAL_X_OFFSET, startPoint.y + TOTAL_Y_OFFSET), cv::Point(endPoint.x + TOTAL_X_OFFSET, endPoint.y + TOTAL_Y_OFFSET), cv::Scalar(180, 180, 180), 3, 8, 0);
+		int totalLineColor = 120 + frameTracker * 15 % (250 - 120);
+		cv::line(totalRep, cv::Point(startPoint.x + TOTAL_X_OFFSET, startPoint.y + TOTAL_Y_OFFSET), cv::Point(endPoint.x + TOTAL_X_OFFSET, endPoint.y + TOTAL_Y_OFFSET), cv::Scalar(totalLineColor, totalLineColor, totalLineColor), 3, 8, 0);
 		cv::circle(totalRep, currRobotPoint, 4, cv::Scalar(100, 50, 255), -1);
 	}
 
