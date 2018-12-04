@@ -59,12 +59,15 @@ DepthFeature::addNewFeatureFrame(cv::Point& pointOne, cv::Point& pointTwo, int f
 }
 
 bool
-DepthFeature::isCurrentAndMostRecentFrame(int currentFrame)
+DepthFeature::isCurrentAndPrevious(int currentFrame)
 {
-	if (featureFrames.size() < 2)
-		return false;
+	return featureFrames.size() >= 2 && featureFrames.back().getFrame() == currentFrame && featureFrames.end()[-2].getFrame() + 1 == currentFrame;
+}
 
-	return featureFrames.back().getFrame() == currentFrame && featureFrames.end()[-2].getFrame() + 1 == currentFrame;
+bool
+DepthFeature::isBrandNew(int currentFrame)
+{
+	return featureFrames.size() == 1 && featureFrames.back().getFrame() == currentFrame;
 }
 
 cv::Point
@@ -73,5 +76,13 @@ DepthFeature::getNewRobotLocationRelativeToPreviousLocation()
 	FeatureFrameInfo recentInfo = featureFrames.back();
 	FeatureFrameInfo originalInfo = featureFrames.end()[-2];
 
-	return cv::Point(0, 0);
+	cv::Point startPoint, endPoint;
+	std::tie(startPoint, endPoint) = recentInfo.getPoints();
+	double startPointAngle, endPointAngle;
+	std::tie(startPointAngle, endPointAngle) = originalInfo.getAngles();
+	cv::Point newRobotLocationPoint = SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles(startPoint, endPoint, startPointAngle, endPointAngle);
+
+	// from angles of 
+
+	return newRobotLocationPoint;
 }

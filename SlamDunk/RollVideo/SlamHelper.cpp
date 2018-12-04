@@ -140,12 +140,15 @@ SlamHelper::linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage)
 std::vector<DepthFeature>
 SlamHelper::realizeNewFeatureAndLinkExisting(cv::Mat& depthImageRO)
 {
+	// TODO May not need to return newFeatures variable as existingFeatures now has everything
+	// TODO Wednesday Dec-5
+
 	std::vector<DepthFeature> newFeatures = {};
+	std::vector<DepthFeature> existingFeaturesInCurrent = {};
 
 	const int featureLookAheadMax = 3;
 	const int depthRangeAllowable = 6;
 	const int minPointsInLine = 15;
-	//std::vector<std::tuple<cv::Point, cv::Point>> traditionalFeatures = {};
 
 	int currentStartX = 0;
 	int currentStartDepth = depthImageRO.at<uchar>(rowOfInterest, currentStartX);
@@ -182,6 +185,7 @@ SlamHelper::realizeNewFeatureAndLinkExisting(cv::Mat& depthImageRO)
 					{
 						newFeature = false;
 						existingFeature.addNewFeatureFrame(newStartPoint, newEndPoint, frameTracker);
+						existingFeaturesInCurrent.push_back(existingFeature);
 						break;
 					}
 				}
@@ -199,6 +203,20 @@ SlamHelper::realizeNewFeatureAndLinkExisting(cv::Mat& depthImageRO)
 			currentDepthRef = currentStartDepth;
 		}
 	}
+
+
+	// TODO for each new feature - should have an 'location based on frame 1' - 'frame1StartPoint' & 'frame1EndPoint'
+
+	for (DepthFeature& newFeature : newFeatures)
+	{
+		std::vector<int> newFeatureFrameOneIdeasX = {};
+		std::vector<int> newFeatureFrameOneIdeasY = {};
+		for (DepthFeature& existingCurrentFeature : existingFeaturesInCurrent)
+		{
+			
+		}
+	}
+
 
 	return newFeatures;
 }
@@ -219,12 +237,20 @@ SlamHelper::drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat
 	for (DepthFeature& existingFeature : existingFeatures)
 	{
 		// TODO if feature is displayed on current frame and previous frame
-		if (existingFeature.isCurrentAndMostRecentFrame(frameTracker))
+		if (existingFeature.isCurrentAndPrevious(frameTracker))
 		{
 			// TODO then get angle between current location of feature and current location of robot
 			// TODO Tuesday
+			// TODO May want to save robotLocationNew (and other screen elements) so they can be quickly referenced as needed - other elements could easily be saved in FeatureFrameInfo
 			cv::Point robotLocationNew = existingFeature.getNewRobotLocationRelativeToPreviousLocation();
-			std::cout << "\tLocation to point to:\t" << existingFeature.getFeatureName() << std::endl;
+			//std::cout << "\tLocation to point to:\t" << robotLocationNew.x << ":" << robotLocationNew.y << std::endl;
+
+			previousRobotGuessX.push_back(robotLocationNew.x);
+			previousRobotGuessY.push_back(robotLocationNew.y);
+		}
+		else if (existingFeature.isBrandNew(frameTracker))
+		{
+			std::cout << "\tBrand New Feature:\t" << existingFeature.getFeatureName() << std::endl;
 		}
 
 	}
@@ -233,15 +259,6 @@ SlamHelper::drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat
 	for (DepthFeature& newFeature : newFeatures)
 	{
 		std::tie(startPoint, endPoint) = newFeature.getRecentPoints();
-
-		// TODO: Reenable all this for actual desired result
-		//if (newFeature.isRecentFeature())
-		//{
-			//// original robot position
-			//cv::Point originalRobotLocation = newFeature.getOrigRobotLocationBasedOnRecentPoints();
-			//previousRobotGuessX.push_back(originalRobotLocation.x);
-			//previousRobotGuessY.push_back(originalRobotLocation.y);
-		//}
 
 
 		// Overhead Representaiton

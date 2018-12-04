@@ -61,6 +61,48 @@ SimpleStaticCalc::unitTestsHere()
 	return true;
 }
 
+std::tuple<double, double>
+SimpleStaticCalc::calculateInitialAnglesTo3rdPoint(cv::Point& startPoint, cv::Point& endPoint, cv::Point& thirdPoint)
+{
+	double startPointAngle, endPointAngle = -1;
+	if (isValidTriangle(startPoint, endPoint, thirdPoint))
+	{
+		double distanceMain = twoPointDistance(startPoint, endPoint);
+		double distanceLeft = twoPointDistance(startPoint, thirdPoint);
+		double distanceRight = twoPointDistance(thirdPoint, endPoint);
+
+		double initialPart = (pow(distanceMain, 2) + pow(distanceLeft, 2) - pow(distanceRight, 2)) / (2 * distanceMain * distanceLeft);
+		startPointAngle = acos(initialPart) * 180 / PI;
+
+		initialPart = (pow(distanceMain, 2) + pow(distanceRight, 2) - pow(distanceLeft, 2)) / (2 * distanceMain * distanceRight);
+		endPointAngle = acos(initialPart) * 180 / PI;
+	}
+	return std::make_tuple(startPointAngle, endPointAngle);
+}
+
+bool
+SimpleStaticCalc::isValidTriangle(cv::Point& startPoint, cv::Point& endPoint, cv::Point& thirdPoint)
+{
+	double distanceMain = SimpleStaticCalc::twoPointDistance(startPoint, endPoint);
+	double distanceLeft = SimpleStaticCalc::twoPointDistance(startPoint, thirdPoint);
+	double distanceRight = SimpleStaticCalc::twoPointDistance(thirdPoint, endPoint);
+	double threeSides[3];
+	threeSides[0] = distanceMain;
+	threeSides[1] = distanceLeft;
+	threeSides[2] = distanceRight;
+	double perimeter = threeSides[2] + threeSides[1] + threeSides[0];
+	for (int i = 0; i < 3; i++)
+	{
+		// IF a single side is longer than the other 2, invalid triangle
+		if (perimeter - threeSides[i] * 2 < 0)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
 cv::Point
 SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles(cv::Point& startPoint, cv::Point& endPoint, double startPointAngle, double endPointAngle)
 {

@@ -15,13 +15,20 @@ FeatureFrameInfo::FeatureFrameInfo(int currFrame, cv::Point& start, cv::Point& e
 	startPoint = start;
 	endPoint = end;
 
-	validFeature = isValidFeature();
-	if (validFeature)
-		calculateInitialAngles();
+	cv::Point currRobotLocation(SimpleStaticCalc::DEPTH_WIDTH / 2, 0);
+	std::tie(startPointAngle, endPointAngle) = SimpleStaticCalc::calculateInitialAnglesTo3rdPoint(start, end, currRobotLocation);
 	onEdge = isFeatureOnEdge();
+
+	validFeature = isValidFeature();
+	if (frame == 1 && validFeature) {
+		frameOneStartPoint = start;
+		frameEndStartPoint = end;
+	}
+	else {
+		frameOneStartPoint = cv::Point(-1, -1);
+		frameEndStartPoint = cv::Point(-1, -1);
+	}
 }
-
-
 
 bool
 FeatureFrameInfo::isFeatureOnEdge()
@@ -40,43 +47,7 @@ FeatureFrameInfo::isFeatureOnEdge()
 bool
 FeatureFrameInfo::isValidFeature()
 {
-	cv::Point currRobotPoint(SimpleStaticCalc::DEPTH_WIDTH / 2, 0);
-	double distanceMain = SimpleStaticCalc::twoPointDistance(startPoint, endPoint);
-	double distanceLeft = SimpleStaticCalc::twoPointDistance(startPoint, currRobotPoint);
-	double distanceRight = SimpleStaticCalc::twoPointDistance(currRobotPoint, endPoint);
-	double threeSides[3];
-	threeSides[0] = distanceMain;
-	threeSides[1] = distanceLeft;
-	threeSides[2] = distanceRight;
-	double perimeter = threeSides[2] + threeSides[1] + threeSides[0];
-	for (int i = 0; i < 3; i++)
-	{
-		// IF a single side is longer than the other 2, invalidate so that feature is retired after one frame
-		if (perimeter - threeSides[i] * 2 < 0)
-		{
-			return false;
-		}
-	}
-
-	return true;
-}
-
-void
-FeatureFrameInfo::calculateInitialAngles()
-{
-	cv::Point currRobotPoint(SimpleStaticCalc::DEPTH_WIDTH / 2, 0);
-	double distanceMain = SimpleStaticCalc::twoPointDistance(startPoint, endPoint);
-	double distanceLeft = SimpleStaticCalc::twoPointDistance(startPoint, currRobotPoint);
-	double distanceRight = SimpleStaticCalc::twoPointDistance(currRobotPoint, endPoint);
-	// only calcuate angle if valid triangle
-	if (validFeature)
-	{
-		double initialPart = (pow(distanceMain, 2) + pow(distanceLeft, 2) - pow(distanceRight, 2)) / (2 * distanceMain * distanceLeft);
-		startPointAngle = acos(initialPart) * 180 / PI;
-
-		initialPart = (pow(distanceMain, 2) + pow(distanceRight, 2) - pow(distanceLeft, 2)) / (2 * distanceMain * distanceRight);
-		endPointAngle = acos(initialPart) * 180 / PI;
-	}
+	return SimpleStaticCalc::isValidTriangle(startPoint, endPoint, cv::Point(SimpleStaticCalc::DEPTH_WIDTH / 2, 0));	
 }
 
 bool 
@@ -96,6 +67,12 @@ std::tuple<cv::Point, cv::Point>
 FeatureFrameInfo::getPoints()
 {
 	return std::make_tuple(startPoint, endPoint);
+}
+
+std::tuple<double, double>
+FeatureFrameInfo::getAngles()
+{
+	return std::make_tuple(startPointAngle, endPointAngle);
 }
 
 int

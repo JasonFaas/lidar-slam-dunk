@@ -11,6 +11,7 @@ class FeatureFrameInfo
 
 		bool newFeatureCloseToThis(cv::Point& pointOne, cv::Point& pointTwo, int frame);
 		std::tuple<cv::Point, cv::Point> getPoints();
+		std::tuple<double, double> getAngles();
 		int FeatureFrameInfo::getFrame();
 
 		bool unitTestsHere();
@@ -18,6 +19,8 @@ class FeatureFrameInfo
 		int frame = -1;
 		cv::Point startPoint = NULL;
 		cv::Point endPoint = NULL;
+		cv::Point frameOneStartPoint = NULL;
+		cv::Point frameEndStartPoint = NULL;
 		double startPointAngle = -1;
 		double endPointAngle = -1;
 		bool validFeature = false;
@@ -25,5 +28,4 @@ class FeatureFrameInfo
 
 		bool isFeatureOnEdge();
 		bool isValidFeature();
-		void calculateInitialAngles();
 };

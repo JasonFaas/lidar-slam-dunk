@@ -10,6 +10,8 @@ class SimpleStaticCalc
 		static double twoPointDistance(cv::Point& first, cv::Point& second);
 		static bool twoPointsClose(cv::Point& first, cv::Point& second);
 		static cv::Point get3rdPointLocationFrom2PointsAndAngles(cv::Point& startPoint, cv::Point& endPoint, double startPointAngle, double endPointAngle);
+		static std::tuple<double, double> calculateInitialAnglesTo3rdPoint(cv::Point& startPoint, cv::Point& endPoint, cv::Point& thirdPoint);
+		static bool isValidTriangle(cv::Point& startPoint, cv::Point& endPoint, cv::Point& thirdPoint);
 
 		static bool unitTestsHere();
 

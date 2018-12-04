@@ -15,7 +15,8 @@ class DepthFeature
 
 		void addNewFeatureFrame(cv::Point& pointOne, cv::Point& pointTwo, int frame);
 		std::string getFeatureName();
-		bool isCurrentAndMostRecentFrame(int currentFrame);
+		bool isCurrentAndPrevious(int currentFrame);
+		bool isBrandNew(int currentFrame);
 
 		cv::Point getNewRobotLocationRelativeToPreviousLocation();
 
