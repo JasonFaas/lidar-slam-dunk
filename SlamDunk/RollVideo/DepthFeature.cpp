@@ -5,6 +5,8 @@
 #include <math.h>
 #include <stdio.h>
 #include <iomanip>
+#include "FeatureFrameInfo.hpp"
+#include "SimpleStaticCalc.hpp"
 
 
 DepthFeature::DepthFeature(
@@ -15,46 +17,10 @@ DepthFeature::DepthFeature(
 {
 	featureName = name;
 
-	//original and recent info initialized as same
-	origStartPoint = start;
-	origEndPoint = end;
-	originalFrame = frame;
+	std::vector<FeatureFrameInfo> featureFrameInfo = {};
+	FeatureFrameInfo firstFeatureFrameInfo(frame, start, end);
+
 	
-	recentStartPoint = start;
-	recentEndPoint = end;
-	recentFrame = frame;
-
-	// Calculate initial angles
-	cv::Point currRobotPoint(DEPTH_WIDTH / 2, 0);
-	double distanceMain = twoPointDistance(origStartPoint, origEndPoint);
-	double distanceLeft = twoPointDistance(origStartPoint, currRobotPoint);
-	double distanceRight = twoPointDistance(currRobotPoint, origEndPoint);
-	double threeSides[3];
-	threeSides[0] = distanceMain;
-	threeSides[1] = distanceLeft;
-	threeSides[2] = distanceRight;
-	double perimeter = threeSides[2] + threeSides[1] + threeSides[0];
-	for (int i = 0; i < 3; i++)
-	{
-		// IF a single side is longer than the other 2, recent recent frames so that feature is retired after one frame
-		if (perimeter - threeSides[i] * 2 < 0)
-		{
-			recentFrame = -1;
-			break;
-		}
-	}
-	// only calcuate angle if valid triangle
-	if (recentFrame != -1)
-	{
-		double initialPart = (pow(distanceMain, 2) + pow(distanceLeft, 2) - pow(distanceRight, 2)) / (2 * distanceMain * distanceLeft);
-		origStartPointAngle = acos(initialPart) * 180 / PI;
-
-		initialPart = (pow(distanceMain, 2) + pow(distanceRight, 2) - pow(distanceLeft, 2)) / (2 * distanceMain * distanceRight);
-		origEndPointAngle = acos(initialPart) * 180 / PI;
-	}
-
-	if (featureRecentOnEdge())
-		recentFrame = -1;
 }
 
 bool
@@ -65,7 +31,7 @@ DepthFeature::unitTestsHere()
 	cv::Point secondTemp(15, 15);
 	cv::Point thirdTemp(25, 25);
 	cv::Point leftEdgeTemp(4, 25);
-	cv::Point rightEdgeTemp(DEPTH_WIDTH - 3, 25);
+	cv::Point rightEdgeTemp(SimpleStaticCalc::DEPTH_WIDTH - 3, 25);
 	if (!twoPointsClose(firstTemp, secondTemp))
 	{
 		std::cout << "1st" << std::endl;
@@ -137,11 +103,6 @@ DepthFeature::twoPointsClose(cv::Point& first, cv::Point& second)
 	return distance < 16;
 }
 
-double
-DepthFeature::twoPointDistance(cv::Point& first, cv::Point& second)
-{
-	return pow(pow(first.x - second.x, 2) + pow(first.y - second.y, 2), 0.5);
-}
 
 bool
 DepthFeature::recentCloseToNewFeature(cv::Point& pointOne, cv::Point& pointTwo, int frame)
@@ -197,20 +158,6 @@ bool
 DepthFeature::isRecentFeature()
 {
 	return recentFrame > originalFrame;
-}
-
-bool
-DepthFeature::featureRecentOnEdge()
-{
-	int nearEdgeMax = 10;
-	std::vector<int> verifyPoints = { recentStartPoint.x, recentEndPoint.x };
-	for (int point : verifyPoints)
-	{
-		if (point < nearEdgeMax || DEPTH_WIDTH - point < nearEdgeMax)
-			return true;
-	}
-
-	return false;
 }
 
 cv::Point

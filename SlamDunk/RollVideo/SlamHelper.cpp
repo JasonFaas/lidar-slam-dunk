@@ -7,6 +7,7 @@
 #include <iomanip>
 #include "DepthFeature.hpp"
 #include <numeric>
+#include "SimpleStaticCalc.hpp"
 
 #define PI 3.14159265
 
@@ -209,7 +210,7 @@ SlamHelper::drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat
 {
 	cv::Point startPoint;
 	cv::Point endPoint;
-	cv::Point currRobotPoint = cv::Point(TOTAL_X_OFFSET + DEPTH_WIDTH / 2, TOTAL_Y_OFFSET);
+	cv::Point currRobotPoint = cv::Point(TOTAL_X_OFFSET + SimpleStaticCalc::DEPTH_WIDTH / 2, TOTAL_Y_OFFSET);
 
 	std::vector<int> previousRobotGuessX = {};
 	std::vector<int> previousRobotGuessY = {};

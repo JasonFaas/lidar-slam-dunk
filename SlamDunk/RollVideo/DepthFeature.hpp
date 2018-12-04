@@ -26,9 +26,6 @@ class DepthFeature
 
 
 	private:
-		const int DEPTH_WIDTH = 512;
-		const int DEPTH_HEIGHT = 424;
-
 		std::string featureName = "empty";
 		cv::Point origStartPoint = NULL;
 		cv::Point origEndPoint = NULL;
