@@ -19,17 +19,10 @@ FeatureFrameInfo::FeatureFrameInfo(int currFrame, cv::Point& start, cv::Point& e
 	std::tie(startPointAngle, endPointAngle) = SimpleStaticCalc::calculateInitialAnglesTo3rdPoint(start, end, currRobotLocation);
 	onEdge = isFeatureOnEdge();
 
-	validFeature = isValidFeature();
-	if (frame == 1 && validFeature) {
-		frameOneStartPoint = start;
-		frameEndStartPoint = end;
-		hasFrameOnePoints = true;
-	}
-	else {
-		frameOneStartPoint = cv::Point(-1, -1);
-		frameEndStartPoint = cv::Point(-1, -1);
-	}
+	validFeature = validateFeature();
 }
+
+
 
 bool
 FeatureFrameInfo::isFeatureOnEdge()
@@ -47,6 +40,12 @@ FeatureFrameInfo::isFeatureOnEdge()
 
 bool
 FeatureFrameInfo::isValidFeature()
+{
+	return validFeature;
+}
+
+bool
+FeatureFrameInfo::validateFeature()
 {
 	return SimpleStaticCalc::isValidTriangle(startPoint, endPoint, cv::Point(SimpleStaticCalc::DEPTH_WIDTH / 2, 0));	
 }
@@ -70,22 +69,6 @@ FeatureFrameInfo::getPoints()
 	if (!validFeature)
 		throw std::invalid_argument("Invalid_Feature:FeatureFrameInfo::getPoints");
 	return std::make_tuple(startPoint, endPoint);
-}
-
-std::tuple<cv::Point, cv::Point>
-FeatureFrameInfo::getFrameOnePoints()
-{
-	if (!(validFeature && hasFrameOnePoints))
-		throw std::invalid_argument("Invalid_Feature:FeatureFrameInfo::getFrameOnePoints");
-	return std::make_tuple(frameOneStartPoint, frameEndStartPoint);
-}
-
-void
-FeatureFrameInfo::updateFrameOnePoints(cv::Point f1StartPoint, cv::Point f1EndPoint)
-{
-	hasFrameOnePoints = true;
-	frameOneStartPoint = f1StartPoint;
-	frameEndStartPoint = f1EndPoint;
 }
 
 std::tuple<double, double>

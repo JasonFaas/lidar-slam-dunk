@@ -18,6 +18,13 @@ DepthFeature::DepthFeature(
 	featureName = name;
 
 	FeatureFrameInfo firstFeatureFrameInfo(frame, start, end);
+	validFeature = firstFeatureFrameInfo.isValidFeature();
+	if (frame == 1 && validFeature)
+	{
+		hasFrameOnePoints = true;
+		startPointFrameOne = start;
+		endPointFrameOne = end;
+	}
 	featureFrames.push_back(firstFeatureFrameInfo);
 }
 
@@ -31,7 +38,7 @@ DepthFeature::unitTestsHere()
 bool
 DepthFeature::recentCloseToNewFeature(cv::Point& pointOne, cv::Point& pointTwo, int frame)
 {
-	if (featureFrames.size() == 0)
+	if (featureFrames.size() == 0 || !validFeature)
 		return false;
 
 	FeatureFrameInfo backElement = featureFrames.back();
@@ -46,17 +53,20 @@ DepthFeature::getRecentPoints()
 }
 
 std::tuple<cv::Point, cv::Point>
-DepthFeature::getRecentFrameOnePoints()
+DepthFeature::getFrameOnePoints()
 {
-	FeatureFrameInfo backFeature = featureFrames.back();
-	return backFeature.getFrameOnePoints();
+	// TODO add more error handling - may be valid failure
+	if (!(hasFrameOnePoints && validFeature))
+		throw std::invalid_argument("Invalid_Feature:DepthFeature::getFrameOnePoints:" + std::to_string(hasFrameOnePoints) + ":" + std::to_string(validFeature));
+	return std::make_tuple(startPointFrameOne, endPointFrameOne);
 }
 
 void
-DepthFeature::updateRecentFrameOnePoints(cv::Point& f1StartPoint, cv::Point& f1EndPoint)
+DepthFeature::updateFrameOnePoints(cv::Point& f1StartPoint, cv::Point& f1EndPoint)
 {
-	FeatureFrameInfo backFeature = featureFrames.back();
-	backFeature.updateFrameOnePoints(f1StartPoint, f1EndPoint);
+	hasFrameOnePoints = true;
+	startPointFrameOne = f1StartPoint;
+	endPointFrameOne = f1EndPoint;
 }
 
 std::string
@@ -68,8 +78,12 @@ DepthFeature::getFeatureName()
 void 
 DepthFeature::addNewFeatureFrame(cv::Point& pointOne, cv::Point& pointTwo, int frame)
 {
-	FeatureFrameInfo newestFeature(frame, pointOne, pointTwo);
-	featureFrames.push_back(newestFeature);
+	if (validFeature)
+	{
+		FeatureFrameInfo newestFeature(frame, pointOne, pointTwo);
+		if (newestFeature.isValidFeature())
+			featureFrames.push_back(newestFeature);
+	}
 }
 
 bool

@@ -231,6 +231,7 @@ SlamHelper::realizeNewFeatureAndLinkExisting(cv::Mat& depthImageRO)
 			}
 			catch (std::invalid_argument e) {
 				std::cout << "Invalid argument thrown attempting to guess at new feature Frame 1 point" << std::endl;
+				std::cout << "Exception Details:\t" << e.what() << std::endl;
 
 				continue;
 			}
@@ -247,7 +248,7 @@ SlamHelper::realizeNewFeatureAndLinkExisting(cv::Mat& depthImageRO)
 		cv::Point finalStartGuess = SimpleStaticCalc::calculatePointsFromEstimations(newFeatureFrameOneStartIdeasX, newFeatureFrameOneStartIdeasY);
 		cv::Point finalEndGuess = SimpleStaticCalc::calculatePointsFromEstimations(newFeatureFrameOneEndIdeasX, newFeatureFrameOneEndIdeasY);
 
-		newFeature.updateRecentFrameOnePoints(finalStartGuess, finalEndGuess);
+		newFeature.updateFrameOnePoints(finalStartGuess, finalEndGuess);
 	}
 	
 
@@ -292,7 +293,7 @@ SlamHelper::drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat
 		//std::tie(startPoint, endPoint) = newFeature.getRecentPoints();
 		// TODO Investigate replacing above with below
 		try {
-			std::tie(startPoint, endPoint) = newFeature.getRecentFrameOnePoints();
+			std::tie(startPoint, endPoint) = newFeature.getFrameOnePoints();
 		}
 		catch (std::invalid_argument e) {
 			std::cout << "Invalid argument throw accessing recent Frame One Points for display" << std::endl;
@@ -334,7 +335,7 @@ SlamHelper::featureFrameOneGuess(cv::Point& newStartPoint, cv::Point& newEndPoin
 	double ideaStartAngle, ideaEndAngle = -1;
 
 	std::tie(recentStartPoint, recentEndPoint) = existingCurrentFeature.getRecentPoints();
-	std::tie(recentF1StartPoint, recentF1EndPoint) = existingCurrentFeature.getRecentFrameOnePoints();
+	std::tie(recentF1StartPoint, recentF1EndPoint) = existingCurrentFeature.getFrameOnePoints();
 
 	// newStartPoint Info
 	std::tie(ideaStartAngle, ideaEndAngle) = SimpleStaticCalc::calculateInitialAnglesTo3rdPoint(recentStartPoint, recentEndPoint, newStartPoint);
