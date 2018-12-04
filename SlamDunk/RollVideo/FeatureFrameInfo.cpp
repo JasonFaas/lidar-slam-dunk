@@ -40,8 +40,6 @@ FeatureFrameInfo::isFeatureOnEdge()
 bool
 FeatureFrameInfo::isValidFeature()
 {
-	validFeature = true;
-
 	cv::Point currRobotPoint(SimpleStaticCalc::DEPTH_WIDTH / 2, 0);
 	double distanceMain = SimpleStaticCalc::twoPointDistance(startPoint, endPoint);
 	double distanceLeft = SimpleStaticCalc::twoPointDistance(startPoint, currRobotPoint);
@@ -53,13 +51,14 @@ FeatureFrameInfo::isValidFeature()
 	double perimeter = threeSides[2] + threeSides[1] + threeSides[0];
 	for (int i = 0; i < 3; i++)
 	{
-		// IF a single side is longer than the other 2, recent recent frames so that feature is retired after one frame
+		// IF a single side is longer than the other 2, invalidate so that feature is retired after one frame
 		if (perimeter - threeSides[i] * 2 < 0)
 		{
-			validFeature = false;
-			break;
+			return false;
 		}
 	}
+
+	return true;
 }
 
 void
@@ -99,6 +98,12 @@ FeatureFrameInfo::getPoints()
 	return std::make_tuple(startPoint, endPoint);
 }
 
+int
+FeatureFrameInfo::getFrame()
+{
+	return frame;
+}
+
 bool
 FeatureFrameInfo::unitTestsHere()
 {
@@ -131,4 +136,7 @@ FeatureFrameInfo::unitTestsHere()
 		std::cout << "5th" << std::endl;
 		return false;
 	}
+
+	std::cout << "FeatureFrameInfo Unit Tests Complete!" << std::endl;
+	return true;
 }

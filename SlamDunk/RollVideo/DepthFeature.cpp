@@ -21,19 +21,10 @@ DepthFeature::DepthFeature(
 	featureFrames.push_back(firstFeatureFrameInfo);
 }
 
-// TOOD Move some unit tests to SimpleStaticCalc
 bool
 DepthFeature::unitTestsHere()
 {
-	cv::Point firstTemp(10, 10);
-	cv::Point secondTemp(15, 15);
-	cv::Point leftEdgeTemp(4, 25);
-	cv::Point rightEdgeTemp(SimpleStaticCalc::DEPTH_WIDTH - 3, 25);
-
-
-	
-	
-	std::cout << "\nUnit Tests Complete!\n\n" << std::endl;
+	std::cout << "DepthFeature Unit Tests Complete!" << std::endl;
 	return true;
 }
 
@@ -46,20 +37,6 @@ DepthFeature::recentCloseToNewFeature(cv::Point& pointOne, cv::Point& pointTwo, 
 	FeatureFrameInfo backElement = featureFrames.back();
 	return backElement.newFeatureCloseToThis(pointOne, pointTwo, frame);
 }
-
-//void
-//DepthFeature::updateRecentPoints(cv::Point& start, cv::Point& end)
-//{
-//	recentStartPoint = start;
-//	recentEndPoint = end;
-//}
-//
-//void
-//DepthFeature::updateOriginalPoints(cv::Point& start, cv::Point& end)
-//{
-//	origStartPoint = start;
-//	origEndPoint = end;
-//}
 
 std::tuple<cv::Point, cv::Point>
 DepthFeature::getRecentPoints()
@@ -74,21 +51,27 @@ DepthFeature::getFeatureName()
 	return featureName;
 }
 
-//bool
-//DepthFeature::isOldFeature()
-//{
-//	return recentFrame != originalFrame;
-//}
-
-bool
-DepthFeature::isRecentFeature()
-{
-	return featureFrames.size() > 1;
-}
-
 void 
 DepthFeature::addNewFeatureFrame(cv::Point& pointOne, cv::Point& pointTwo, int frame)
 {
 	FeatureFrameInfo newestFeature(frame, pointOne, pointTwo);
 	featureFrames.push_back(newestFeature);
+}
+
+bool
+DepthFeature::isCurrentAndMostRecentFrame(int currentFrame)
+{
+	if (featureFrames.size() < 2)
+		return false;
+
+	return featureFrames.back().getFrame() == currentFrame && featureFrames.end()[-2].getFrame() + 1 == currentFrame;
+}
+
+cv::Point
+DepthFeature::getNewRobotLocationRelativeToPreviousLocation()
+{
+	FeatureFrameInfo recentInfo = featureFrames.back();
+	FeatureFrameInfo originalInfo = featureFrames.end()[-2];
+
+	return cv::Point(0, 0);
 }

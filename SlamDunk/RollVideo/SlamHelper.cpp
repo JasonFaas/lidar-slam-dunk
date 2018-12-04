@@ -213,11 +213,19 @@ SlamHelper::drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat
 	std::vector<int> previousRobotGuessX = {};
 	std::vector<int> previousRobotGuessY = {};
 
+	std::cout << "Frame:\t" << frameTracker << std::endl;
+
 	// Get new robot position
 	for (DepthFeature& existingFeature : existingFeatures)
 	{
 		// TODO if feature is displayed on current frame and previous frame
+		if (existingFeature.isCurrentAndMostRecentFrame(frameTracker))
+		{
 			// TODO then get angle between current location of feature and current location of robot
+			// TODO Tuesday
+			cv::Point robotLocationNew = existingFeature.getNewRobotLocationRelativeToPreviousLocation();
+			std::cout << "\tLocation to point to:\t" << existingFeature.getFeatureName() << std::endl;
+		}
 
 	}
 
@@ -226,15 +234,14 @@ SlamHelper::drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat
 	{
 		std::tie(startPoint, endPoint) = newFeature.getRecentPoints();
 
-
-		if (newFeature.isRecentFeature())
-		{
-			// TODO: Reenable all this for actual desired result
+		// TODO: Reenable all this for actual desired result
+		//if (newFeature.isRecentFeature())
+		//{
 			//// original robot position
 			//cv::Point originalRobotLocation = newFeature.getOrigRobotLocationBasedOnRecentPoints();
 			//previousRobotGuessX.push_back(originalRobotLocation.x);
 			//previousRobotGuessY.push_back(originalRobotLocation.y);
-		}
+		//}
 
 
 		// Overhead Representaiton

@@ -12,16 +12,12 @@ class DepthFeature
 
 		bool recentCloseToNewFeature(cv::Point& pointOne, cv::Point& pointTwo, int frame);
 		std::tuple<cv::Point, cv::Point> getRecentPoints();
-		//void updateRecentPoints(cv::Point& start, cv::Point& end);
 
 		void addNewFeatureFrame(cv::Point& pointOne, cv::Point& pointTwo, int frame);
-
 		std::string getFeatureName();
-		//bool isOldFeature();
-		bool isRecentFeature();
-		//bool featureRecentOnEdge();
+		bool isCurrentAndMostRecentFrame(int currentFrame);
 
-		//cv::Point getOrigRobotLocationBasedOnRecentPoints();
+		cv::Point getNewRobotLocationRelativeToPreviousLocation();
 
 		bool unitTestsHere();
 

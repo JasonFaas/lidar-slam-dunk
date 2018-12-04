@@ -57,6 +57,7 @@ SimpleStaticCalc::unitTestsHere()
 		return false;
 	}
 
+	std::cout << "SimpleStaticCalc Unit Tests Complete!" << std::endl;
 	return true;
 }
 

@@ -11,6 +11,7 @@ class FeatureFrameInfo
 
 		bool newFeatureCloseToThis(cv::Point& pointOne, cv::Point& pointTwo, int frame);
 		std::tuple<cv::Point, cv::Point> getPoints();
+		int FeatureFrameInfo::getFrame();
 
 		bool unitTestsHere();
 	private:
