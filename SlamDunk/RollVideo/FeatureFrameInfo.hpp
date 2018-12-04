@@ -11,6 +11,8 @@ class FeatureFrameInfo
 
 		bool newFeatureCloseToThis(cv::Point& pointOne, cv::Point& pointTwo, int frame);
 		std::tuple<cv::Point, cv::Point> getPoints();
+		std::tuple<cv::Point, cv::Point> getFrameOnePoints();
+		void updateFrameOnePoints(cv::Point f1StartPoint, cv::Point f1EndPoint);
 		std::tuple<double, double> getAngles();
 		int FeatureFrameInfo::getFrame();
 
@@ -24,6 +26,7 @@ class FeatureFrameInfo
 		double startPointAngle = -1;
 		double endPointAngle = -1;
 		bool validFeature = false;
+		bool hasFrameOnePoints = false;
 		bool onEdge = false;
 
 		bool isFeatureOnEdge();

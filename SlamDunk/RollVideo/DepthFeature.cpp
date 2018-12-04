@@ -45,6 +45,20 @@ DepthFeature::getRecentPoints()
 	return backFeature.getPoints();
 }
 
+std::tuple<cv::Point, cv::Point>
+DepthFeature::getRecentFrameOnePoints()
+{
+	FeatureFrameInfo backFeature = featureFrames.back();
+	return backFeature.getFrameOnePoints();
+}
+
+void
+DepthFeature::updateRecentFrameOnePoints(cv::Point& f1StartPoint, cv::Point& f1EndPoint)
+{
+	FeatureFrameInfo backFeature = featureFrames.back();
+	backFeature.updateFrameOnePoints(f1StartPoint, f1EndPoint);
+}
+
 std::string
 DepthFeature::getFeatureName()
 {

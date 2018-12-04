@@ -116,7 +116,7 @@ SlamHelper::depthTo2DimAdjusted(cv::Mat& depthImage)
 cv::Mat
 SlamHelper::linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage)
 {
-	frameTracker++;
+	std::cout << "Frame:\t" << ++frameTracker << std::endl;
 
 	cv::Mat depthCopy;
 	cv::Mat overheadCopy;
@@ -126,7 +126,7 @@ SlamHelper::linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage)
 	std::vector<DepthFeature> newFeatures = realizeNewFeatureAndLinkExisting(depthImage);
 	drawLotsOfFeaturesV1(newFeatures, overheadCopy, depthCopy);
 
-	std::cout << "Feature Count:\t" << existingFeatures.size() << std::endl;
+	//std::cout << "Feature Count:\t" << existingFeatures.size() << std::endl;
 	cv::namedWindow("Overhead Extra");
 	imshow("Overhead Extra", overheadCopy);
 	cv::namedWindow("Depth Extra");
@@ -204,18 +204,52 @@ SlamHelper::realizeNewFeatureAndLinkExisting(cv::Mat& depthImageRO)
 		}
 	}
 
+	std::cout << "Existing feature in current:\t" << existingFeaturesInCurrent.size() << std::endl;
+	if (existingFeaturesInCurrent.size() == 0 && frameTracker > 1)
+		std::cout << "\t!!!Existing feature in current count is ZERO!!!" << std::endl;
 
-	// TODO for each new feature - should have an 'location based on frame 1' - 'frame1StartPoint' & 'frame1EndPoint'
-
+	// TODONE for each new feature - should have an 'location based on frame 1' - 'frame1StartPoint' & 'frame1EndPoint'
+	cv::Point newStartPoint(-1, -1);
+	cv::Point newEndPoint(-1, -1);
+	cv::Point newF1StartPoint(-1, -1);
+	cv::Point newF1EndPoint(-1, -1);
 	for (DepthFeature& newFeature : newFeatures)
 	{
-		std::vector<int> newFeatureFrameOneIdeasX = {};
-		std::vector<int> newFeatureFrameOneIdeasY = {};
+		std::vector<int> newFeatureFrameOneStartIdeasX = {};
+		std::vector<int> newFeatureFrameOneStartIdeasY = {};
+		std::vector<int> newFeatureFrameOneEndIdeasX = {};
+		std::vector<int> newFeatureFrameOneEndIdeasY = {};
+		std::tie(newStartPoint, newEndPoint) = newFeature.getRecentPoints();
 		for (DepthFeature& existingCurrentFeature : existingFeaturesInCurrent)
 		{
-			
+			try {
+				std::tie(newF1StartPoint, newF1EndPoint) = featureFrameOneGuess(newStartPoint, newEndPoint, existingCurrentFeature);
+				newFeatureFrameOneStartIdeasX.push_back(newF1StartPoint.x);
+				newFeatureFrameOneStartIdeasY.push_back(newF1StartPoint.y);
+				newFeatureFrameOneEndIdeasX.push_back(newF1EndPoint.x);
+				newFeatureFrameOneEndIdeasY.push_back(newF1EndPoint.y);
+			}
+			catch (std::invalid_argument e) {
+				std::cout << "Invalid argument thrown attempting to guess at new feature Frame 1 point" << std::endl;
+
+				continue;
+			}
 		}
+
+		if (newFeatureFrameOneStartIdeasX.size() == 0)
+		{
+			if (frameTracker > 1)
+				std::cout << "Error with feature on frame:\t" << newFeature.getFeatureName() << ":" << frameTracker << std::endl;
+			continue;
+		}
+
+		// Set Frame One Location for new Feature
+		cv::Point finalStartGuess = SimpleStaticCalc::calculatePointsFromEstimations(newFeatureFrameOneStartIdeasX, newFeatureFrameOneStartIdeasY);
+		cv::Point finalEndGuess = SimpleStaticCalc::calculatePointsFromEstimations(newFeatureFrameOneEndIdeasX, newFeatureFrameOneEndIdeasY);
+
+		newFeature.updateRecentFrameOnePoints(finalStartGuess, finalEndGuess);
 	}
+	
 
 
 	return newFeatures;
@@ -224,6 +258,7 @@ SlamHelper::realizeNewFeatureAndLinkExisting(cv::Mat& depthImageRO)
 void
 SlamHelper::drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat& overheadCopy, cv::Mat& depthCopy)
 {
+
 	cv::Point startPoint;
 	cv::Point endPoint;
 	cv::Point currRobotPoint = cv::Point(TOTAL_X_OFFSET + SimpleStaticCalc::DEPTH_WIDTH / 2, TOTAL_Y_OFFSET);
@@ -231,16 +266,11 @@ SlamHelper::drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat
 	std::vector<int> previousRobotGuessX = {};
 	std::vector<int> previousRobotGuessY = {};
 
-	std::cout << "Frame:\t" << frameTracker << std::endl;
-
 	// Get new robot position
 	for (DepthFeature& existingFeature : existingFeatures)
 	{
-		// TODO if feature is displayed on current frame and previous frame
 		if (existingFeature.isCurrentAndPrevious(frameTracker))
 		{
-			// TODO then get angle between current location of feature and current location of robot
-			// TODO Tuesday
 			// TODO May want to save robotLocationNew (and other screen elements) so they can be quickly referenced as needed - other elements could easily be saved in FeatureFrameInfo
 			cv::Point robotLocationNew = existingFeature.getNewRobotLocationRelativeToPreviousLocation();
 			//std::cout << "\tLocation to point to:\t" << robotLocationNew.x << ":" << robotLocationNew.y << std::endl;
@@ -250,7 +280,8 @@ SlamHelper::drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat
 		}
 		else if (existingFeature.isBrandNew(frameTracker))
 		{
-			std::cout << "\tBrand New Feature:\t" << existingFeature.getFeatureName() << std::endl;
+			// TODO delete this else if
+			//std::cout << "\tBrand New Feature:\t" << existingFeature.getFeatureName() << std::endl;
 		}
 
 	}
@@ -258,8 +289,15 @@ SlamHelper::drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat
 
 	for (DepthFeature& newFeature : newFeatures)
 	{
-		std::tie(startPoint, endPoint) = newFeature.getRecentPoints();
-
+		//std::tie(startPoint, endPoint) = newFeature.getRecentPoints();
+		// TODO Investigate replacing above with below
+		try {
+			std::tie(startPoint, endPoint) = newFeature.getRecentFrameOnePoints();
+		}
+		catch (std::invalid_argument e) {
+			std::cout << "Invalid argument throw accessing recent Frame One Points for display" << std::endl;
+			continue;
+		}
 
 		// Overhead Representaiton
 		cv::line(overheadCopy, cv::Point(startPoint.x, startPoint.y), cv::Point(endPoint.x, endPoint.y), cv::Scalar(180), 3, 8, 0);
@@ -270,27 +308,41 @@ SlamHelper::drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat
 		// Full Representation
 		int totalLineColor = 120 + frameTracker * 15 % (250 - 120);
 		cv::line(totalRep, cv::Point(startPoint.x + TOTAL_X_OFFSET, startPoint.y + TOTAL_Y_OFFSET), cv::Point(endPoint.x + TOTAL_X_OFFSET, endPoint.y + TOTAL_Y_OFFSET), cv::Scalar(totalLineColor, totalLineColor, totalLineColor), 3, 8, 0);
-		cv::circle(totalRep, currRobotPoint, 4, cv::Scalar(100, 50, 255), -1);
 	}
+	cv::circle(totalRep, currRobotPoint, 4, cv::Scalar(100, 50, 255), -1);
 
 	if (previousRobotGuessX.size() > 0)
 	{
-		int robotGuessX = 0;
-		int robotGuessY = 0;
-		int robotGuesses = previousRobotGuessX.size();
-
-		Concurrency::parallel_for_each(previousRobotGuessX.begin(), previousRobotGuessX.end(), [&](int n) {
-			robotGuessX += n;
-		});
-		Concurrency::parallel_for_each(previousRobotGuessY.begin(), previousRobotGuessY.end(), [&](int n) {
-			robotGuessY += n;
-		});
-		int yFinal = (int)std::round(robotGuessY / robotGuesses + TOTAL_Y_OFFSET);
-
-		cv::Point robotEstimation = cv::Point((int)std::round(robotGuessX) / robotGuesses + TOTAL_X_OFFSET, yFinal);
+		cv::Point finalGuess = SimpleStaticCalc::calculatePointsFromEstimations(previousRobotGuessX, previousRobotGuessY);
+		cv::Point robotEstimation = cv::Point(finalGuess.x + TOTAL_X_OFFSET, finalGuess.y + TOTAL_Y_OFFSET);
 		cv::circle(totalRep, robotEstimation, 4, cv::Scalar(250, 250, 100), -1);
 	}
 	else {
 		std::cout << "Maybe Later" << std::endl;
 	}
+}
+
+std::tuple<cv::Point, cv::Point>
+SlamHelper::featureFrameOneGuess(cv::Point& newStartPoint, cv::Point& newEndPoint, DepthFeature& existingCurrentFeature)
+{
+	cv::Point recentStartPoint(-1, -1);
+	cv::Point recentEndPoint(-1, -1);
+	cv::Point recentF1StartPoint(-1, -1);
+	cv::Point recentF1EndPoint(-1, -1);
+	cv::Point newF1StartPoint(-1, -1);
+	cv::Point newF1EndPoint(-1, -1);
+	double ideaStartAngle, ideaEndAngle = -1;
+
+	std::tie(recentStartPoint, recentEndPoint) = existingCurrentFeature.getRecentPoints();
+	std::tie(recentF1StartPoint, recentF1EndPoint) = existingCurrentFeature.getRecentFrameOnePoints();
+
+	// newStartPoint Info
+	std::tie(ideaStartAngle, ideaEndAngle) = SimpleStaticCalc::calculateInitialAnglesTo3rdPoint(recentStartPoint, recentEndPoint, newStartPoint);
+	newF1StartPoint = SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles(recentF1StartPoint, recentF1EndPoint, ideaStartAngle, ideaEndAngle);
+
+	// newEndPoint Info
+	std::tie(ideaStartAngle, ideaEndAngle) = SimpleStaticCalc::calculateInitialAnglesTo3rdPoint(recentStartPoint, recentEndPoint, newEndPoint);
+	newF1EndPoint = SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles(recentF1StartPoint, recentF1EndPoint, ideaStartAngle, ideaEndAngle);
+
+	return std::make_tuple(newF1StartPoint, newF1EndPoint);
 }

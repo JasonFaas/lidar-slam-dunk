@@ -12,6 +12,8 @@ class DepthFeature
 
 		bool recentCloseToNewFeature(cv::Point& pointOne, cv::Point& pointTwo, int frame);
 		std::tuple<cv::Point, cv::Point> getRecentPoints();
+		std::tuple<cv::Point, cv::Point> getRecentFrameOnePoints();
+		void updateRecentFrameOnePoints(cv::Point& f1StartPoint, cv::Point& f1EndPoint);
 
 		void addNewFeatureFrame(cv::Point& pointOne, cv::Point& pointTwo, int frame);
 		std::string getFeatureName();

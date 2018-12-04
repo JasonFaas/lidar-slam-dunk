@@ -12,6 +12,7 @@ class SimpleStaticCalc
 		static cv::Point get3rdPointLocationFrom2PointsAndAngles(cv::Point& startPoint, cv::Point& endPoint, double startPointAngle, double endPointAngle);
 		static std::tuple<double, double> calculateInitialAnglesTo3rdPoint(cv::Point& startPoint, cv::Point& endPoint, cv::Point& thirdPoint);
 		static bool isValidTriangle(cv::Point& startPoint, cv::Point& endPoint, cv::Point& thirdPoint);
+		static cv::Point calculatePointsFromEstimations(std::vector<int> estimationsX, std::vector<int> estimationsY);
 
 		static bool unitTestsHere();
 

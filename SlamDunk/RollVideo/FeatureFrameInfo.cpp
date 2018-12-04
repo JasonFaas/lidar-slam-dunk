@@ -23,6 +23,7 @@ FeatureFrameInfo::FeatureFrameInfo(int currFrame, cv::Point& start, cv::Point& e
 	if (frame == 1 && validFeature) {
 		frameOneStartPoint = start;
 		frameEndStartPoint = end;
+		hasFrameOnePoints = true;
 	}
 	else {
 		frameOneStartPoint = cv::Point(-1, -1);
@@ -66,7 +67,25 @@ FeatureFrameInfo::newFeatureCloseToThis(cv::Point& pointOne, cv::Point& pointTwo
 std::tuple<cv::Point, cv::Point> 
 FeatureFrameInfo::getPoints()
 {
+	if (!validFeature)
+		throw std::invalid_argument("Invalid_Feature:FeatureFrameInfo::getPoints");
 	return std::make_tuple(startPoint, endPoint);
+}
+
+std::tuple<cv::Point, cv::Point>
+FeatureFrameInfo::getFrameOnePoints()
+{
+	if (!(validFeature && hasFrameOnePoints))
+		throw std::invalid_argument("Invalid_Feature:FeatureFrameInfo::getFrameOnePoints");
+	return std::make_tuple(frameOneStartPoint, frameEndStartPoint);
+}
+
+void
+FeatureFrameInfo::updateFrameOnePoints(cv::Point f1StartPoint, cv::Point f1EndPoint)
+{
+	hasFrameOnePoints = true;
+	frameOneStartPoint = f1StartPoint;
+	frameEndStartPoint = f1EndPoint;
 }
 
 std::tuple<double, double>

@@ -64,19 +64,20 @@ SimpleStaticCalc::unitTestsHere()
 std::tuple<double, double>
 SimpleStaticCalc::calculateInitialAnglesTo3rdPoint(cv::Point& startPoint, cv::Point& endPoint, cv::Point& thirdPoint)
 {
+	if (!isValidTriangle(startPoint, endPoint, thirdPoint))
+		throw std::invalid_argument("Invalid_Feature:SimpleStaticCalc::calculateInitialAnglesTo3rdPoint");
+	
 	double startPointAngle, endPointAngle = -1;
-	if (isValidTriangle(startPoint, endPoint, thirdPoint))
-	{
-		double distanceMain = twoPointDistance(startPoint, endPoint);
-		double distanceLeft = twoPointDistance(startPoint, thirdPoint);
-		double distanceRight = twoPointDistance(thirdPoint, endPoint);
+	double distanceMain = twoPointDistance(startPoint, endPoint);
+	double distanceLeft = twoPointDistance(startPoint, thirdPoint);
+	double distanceRight = twoPointDistance(thirdPoint, endPoint);
 
-		double initialPart = (pow(distanceMain, 2) + pow(distanceLeft, 2) - pow(distanceRight, 2)) / (2 * distanceMain * distanceLeft);
-		startPointAngle = acos(initialPart) * 180 / PI;
+	double initialPart = (pow(distanceMain, 2) + pow(distanceLeft, 2) - pow(distanceRight, 2)) / (2 * distanceMain * distanceLeft);
+	startPointAngle = acos(initialPart) * 180 / PI;
 
-		initialPart = (pow(distanceMain, 2) + pow(distanceRight, 2) - pow(distanceLeft, 2)) / (2 * distanceMain * distanceRight);
-		endPointAngle = acos(initialPart) * 180 / PI;
-	}
+	initialPart = (pow(distanceMain, 2) + pow(distanceRight, 2) - pow(distanceLeft, 2)) / (2 * distanceMain * distanceRight);
+	endPointAngle = acos(initialPart) * 180 / PI;
+	
 	return std::make_tuple(startPointAngle, endPointAngle);
 }
 
@@ -101,6 +102,25 @@ SimpleStaticCalc::isValidTriangle(cv::Point& startPoint, cv::Point& endPoint, cv
 	}
 
 	return true;
+}
+
+cv::Point
+SimpleStaticCalc::calculatePointsFromEstimations(std::vector<int> estimationsX, std::vector<int> estimationsY)
+{
+	int robotGuessX = 0;
+	int robotGuessY = 0;
+	int robotGuesses = estimationsX.size();
+
+	Concurrency::parallel_for_each(estimationsX.begin(), estimationsX.end(), [&](int n) {
+		robotGuessX += n;
+	});
+	Concurrency::parallel_for_each(estimationsY.begin(), estimationsY.end(), [&](int n) {
+		robotGuessY += n;
+	});
+	int xFinal = (int)std::round(robotGuessX / robotGuesses);
+	int yFinal = (int)std::round(robotGuessY / robotGuesses);
+
+	return cv::Point(xFinal, yFinal);
 }
 
 cv::Point
