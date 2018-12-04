@@ -118,31 +118,46 @@ cv::Mat
 SlamHelper::linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage)
 {
 	frameTracker++;
-	cv::Mat fullRepresentation = cv::Mat(cv::Size(1600, 800), CV_8UC3, cv::Scalar(0, 0, 0));
-	int totalXOffset = 400;
-	int totalYOffset = 100;
+	cv::Mat totalRep = cv::Mat(cv::Size(1600, 800), CV_8UC3, cv::Scalar(0, 0, 0));
 
 	cv::Mat depthCopy;
 	cv::Mat overheadCopy;
 	depthImage.copyTo(depthCopy);
 	overheadImage.copyTo(overheadCopy);
-	
-	int rowOfInterest = depthImage.rows / 2;
+
+	std::vector<DepthFeature> newFeatures = realizeNewFeatureAndLinkExisting(depthImage);
+	drawLotsOfFeaturesV1(newFeatures, totalRep, overheadCopy, depthCopy);
+
+	std::cout << "Feature Count:\t" << existingFeatures.size() << std::endl;
+	cv::namedWindow("Overhead Extra");
+	imshow("Overhead Extra", overheadCopy);
+	cv::namedWindow("Depth Extra");
+	imshow("Depth Extra", depthCopy);
+	cv::namedWindow("Full Representation");
+	imshow("Full Representation", totalRep);
+
+	return depthCopy;
+}
+
+std::vector<DepthFeature>
+SlamHelper::realizeNewFeatureAndLinkExisting(cv::Mat& depthImageRO)
+{
+	std::vector<DepthFeature> newFeatures = {};
+
 	const int featureLookAheadMax = 3;
 	const int depthRangeAllowable = 6;
 	const int minPointsInLine = 15;
 	//std::vector<std::tuple<cv::Point, cv::Point>> traditionalFeatures = {};
-	std::vector<DepthFeature> newFeatures = {};
 
 	int currentStartX = 0;
-	int currentStartDepth = depthImage.at<uchar>(rowOfInterest, currentStartX);
+	int currentStartDepth = depthImageRO.at<uchar>(rowOfInterest, currentStartX);
 	int currentDepthRef = currentStartDepth;
-	for (int i = 0; i < depthImage.cols; i++)
+	for (int i = 0; i < depthImageRO.cols; i++)
 	{
 		bool continueLine = false;
 		for (int m = 0; m < featureLookAheadMax; m++)
 		{
-			int nextDepth = depthImage.at<uchar>(rowOfInterest, i + 1 + m);
+			int nextDepth = depthImageRO.at<uchar>(rowOfInterest, i + 1 + m);
 			if (abs(nextDepth - currentDepthRef) < depthRangeAllowable)
 			{
 				currentDepthRef = nextDepth;
@@ -156,11 +171,11 @@ SlamHelper::linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage)
 			}
 		}
 
-		if (!continueLine || i + 2 + featureLookAheadMax > depthImage.cols)
+		if (!continueLine || i + 2 + featureLookAheadMax > depthImageRO.cols)
 		{
 			if (i + 1 - currentStartX >= minPointsInLine)
 			{
-				cv::Point newStartPoint(currentStartX,currentStartDepth);
+				cv::Point newStartPoint(currentStartX, currentStartDepth);
 				cv::Point newEndPoint(i, currentDepthRef);
 				bool newFeature = true;
 				for (DepthFeature& existingFeature : existingFeatures)
@@ -182,23 +197,25 @@ SlamHelper::linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage)
 				}
 			}
 			currentStartX = i + 1;
-			currentStartDepth = depthImage.at<uchar>(rowOfInterest, currentStartX);
+			currentStartDepth = depthImageRO.at<uchar>(rowOfInterest, currentStartX);
 			currentDepthRef = currentStartDepth;
 		}
 	}
 
+	return newFeatures;
+}
 
-
-
-	// highlight locations of features
+void
+SlamHelper::drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat& totalRep, cv::Mat& overheadCopy, cv::Mat& depthCopy)
+{
 	cv::Point startPoint;
 	cv::Point endPoint;
-	cv::Point currRobotPoint = cv::Point(totalXOffset + DEPTH_WIDTH / 2, totalYOffset);
+	cv::Point currRobotPoint = cv::Point(TOTAL_X_OFFSET + DEPTH_WIDTH / 2, TOTAL_Y_OFFSET);
 
 	std::vector<int> previousRobotGuessX = {};
 	std::vector<int> previousRobotGuessY = {};
 	for (DepthFeature& newFeature : newFeatures)
-	{	
+	{
 		std::tie(startPoint, endPoint) = newFeature.getRecentPoints();
 
 
@@ -211,19 +228,19 @@ SlamHelper::linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage)
 			int distanceMain = (int)std::round(newFeature.twoPointDistance(startPoint, endPoint));
 			int distanceLeft = (int)std::round(newFeature.twoPointDistance(startPoint, currRobotPoint));
 			int distanceRight = (int)std::round(newFeature.twoPointDistance(currRobotPoint, endPoint));
-			cv::putText(fullRepresentation, std::to_string(distanceMain), cv::Point(startPoint.x + totalXOffset, startPoint.y - 40 + totalYOffset), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(250, 150, 150));
-			cv::putText(fullRepresentation, std::to_string(distanceLeft), cv::Point(startPoint.x + totalXOffset - 50, startPoint.y + 40 + totalYOffset), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(150, 250, 150));
-			cv::putText(fullRepresentation, std::to_string(distanceRight), cv::Point(endPoint.x + totalXOffset + 50, endPoint.y + 40 + totalYOffset), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(150, 150, 250));
+			cv::putText(totalRep, std::to_string(distanceMain), cv::Point(startPoint.x + TOTAL_X_OFFSET, startPoint.y - 40 + TOTAL_Y_OFFSET), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(250, 150, 150));
+			cv::putText(totalRep, std::to_string(distanceLeft), cv::Point(startPoint.x + TOTAL_X_OFFSET - 50, startPoint.y + 40 + TOTAL_Y_OFFSET), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(150, 250, 150));
+			cv::putText(totalRep, std::to_string(distanceRight), cv::Point(endPoint.x + TOTAL_X_OFFSET + 50, endPoint.y + 40 + TOTAL_Y_OFFSET), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(150, 150, 250));
 			// left
-			cv::line(fullRepresentation, cv::Point(startPoint.x + totalXOffset, startPoint.y + totalYOffset), currRobotPoint, cv::Scalar(150, 250, 150), 3, 8, 0);
+			cv::line(totalRep, cv::Point(startPoint.x + TOTAL_X_OFFSET, startPoint.y + TOTAL_Y_OFFSET), currRobotPoint, cv::Scalar(150, 250, 150), 3, 8, 0);
 			// right
-			cv::line(fullRepresentation, currRobotPoint, cv::Point(endPoint.x + totalXOffset, endPoint.y + totalYOffset), cv::Scalar(150, 150, 250), 3, 8, 0);
+			cv::line(totalRep, currRobotPoint, cv::Point(endPoint.x + TOTAL_X_OFFSET, endPoint.y + TOTAL_Y_OFFSET), cv::Scalar(150, 150, 250), 3, 8, 0);
 
 			// original robot position
 			cv::Point originalRobotLocation = newFeature.getOrigRobotLocationBasedOnRecentPoints();
 			previousRobotGuessX.push_back(originalRobotLocation.x);
 			previousRobotGuessY.push_back(originalRobotLocation.y);
-			//cv::circle(fullRepresentation, cv::Point(originalRobotLocation->x + totalXOffset, originalRobotLocation->y + totalYOffset), 4, cv::Scalar(100, 250, 255), -1);
+			//cv::circle(totalRep, cv::Point(originalRobotLocation->x + TOTAL_X_OFFSET, originalRobotLocation->y + TOTAL_Y_OFFSET), 4, cv::Scalar(100, 250, 255), -1);
 		}
 
 
@@ -235,8 +252,8 @@ SlamHelper::linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage)
 		cv::putText(depthCopy, newFeature.getFeatureName(), cv::Point(startPoint.x, rowOfInterest + 40), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(0));
 		// Full Representation
 		// TODO: This will be more complicated for actual feature tracking over multiple frames
-		cv::line(fullRepresentation, cv::Point(startPoint.x + totalXOffset, startPoint.y + totalYOffset), cv::Point(endPoint.x + totalXOffset, endPoint.y + totalYOffset), cv::Scalar(180, 180, 180), 3, 8, 0);
-		cv::circle(fullRepresentation, currRobotPoint, 4, cv::Scalar(100, 50, 255), -1);
+		cv::line(totalRep, cv::Point(startPoint.x + TOTAL_X_OFFSET, startPoint.y + TOTAL_Y_OFFSET), cv::Point(endPoint.x + TOTAL_X_OFFSET, endPoint.y + TOTAL_Y_OFFSET), cv::Scalar(180, 180, 180), 3, 8, 0);
+		cv::circle(totalRep, currRobotPoint, 4, cv::Scalar(100, 50, 255), -1);
 	}
 
 	if (previousRobotGuessX.size() > 0)
@@ -251,23 +268,12 @@ SlamHelper::linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage)
 		Concurrency::parallel_for_each(previousRobotGuessY.begin(), previousRobotGuessY.end(), [&](int n) {
 			robotGuessY += n;
 		});
-		int yFinal = (int)std::round(robotGuessY / robotGuesses + totalYOffset);
+		int yFinal = (int)std::round(robotGuessY / robotGuesses + TOTAL_Y_OFFSET);
 
-		cv::Point robotEstimation = cv::Point((int)std::round(robotGuessX) / robotGuesses + totalXOffset, yFinal);
-		cv::circle(fullRepresentation, robotEstimation, 4, cv::Scalar(250, 250, 100), -1);
+		cv::Point robotEstimation = cv::Point((int)std::round(robotGuessX) / robotGuesses + TOTAL_X_OFFSET, yFinal);
+		cv::circle(totalRep, robotEstimation, 4, cv::Scalar(250, 250, 100), -1);
 	}
 	else {
 		std::cout << "Maybe Later" << std::endl;
 	}
-
-	std::cout << "Feature Count:\t" << existingFeatures.size() << std::endl;
-
-	cv::namedWindow("Overhead Extra");
-	imshow("Overhead Extra", overheadCopy);
-	cv::namedWindow("Depth Extra");
-	imshow("Depth Extra", depthCopy);
-	cv::namedWindow("Full Representation");
-	imshow("Full Representation", fullRepresentation);
-
-	return depthCopy;
 }

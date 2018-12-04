@@ -16,6 +16,8 @@ class SlamHelper
 		cv::Mat linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage);
 	private:
 		std::vector<DepthFeature> existingFeatures = {};
+		std::vector<DepthFeature> realizeNewFeatureAndLinkExisting(cv::Mat& depthImageRO);
+		void drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat& totalRep, cv::Mat& overheadCopy, cv::Mat& depthCopy);
 
 		int featureNameIterator = 1;
 		int frameTracker = 0;
@@ -31,4 +33,9 @@ class SlamHelper
 		const int DEPTH_IMG_SIZE = DEPTH_WIDTH * DEPTH_HEIGHT;
 		const int DEPTH_MAX_DEPTH = 4500;
 		const int DEPTH_MIN_DEPTH = 500;
+
+		const int rowOfInterest = DEPTH_HEIGHT / 2;
+
+		const int TOTAL_X_OFFSET = 400;
+		const int TOTAL_Y_OFFSET = 100;
 };
