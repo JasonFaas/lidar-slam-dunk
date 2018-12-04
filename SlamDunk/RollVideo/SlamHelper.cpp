@@ -9,8 +9,6 @@
 #include <numeric>
 #include "SimpleStaticCalc.hpp"
 
-#define PI 3.14159265
-
 SlamHelper::SlamHelper()
 {
 }
@@ -229,7 +227,6 @@ SlamHelper::drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat
 		std::tie(startPoint, endPoint) = newFeature.getRecentPoints();
 
 
-		//TODO if new feature is existing and non-edge, attempt to update robot position
 		if (newFeature.isRecentFeature())
 		{
 			// TODO: Reenable all this for actual desired result

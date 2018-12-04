@@ -3,6 +3,7 @@
 #include <iostream>
 #include "opencv2/opencv.hpp"
 #include <ppl.h>
+#include "FeatureFrameInfo.hpp"
 
 class DepthFeature
 {

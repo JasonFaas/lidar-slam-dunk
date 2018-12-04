@@ -39,7 +39,6 @@ SimpleStaticCalc::unitTestsHere()
 		return false;
 	}
 
-	// TODO write test for get robot original location
 	cv::Point sevenTemp(400, 300);
 	cv::Point eightTemp(400, 100);
 	cv::Point robotOrigLocation1 = get3rdPointLocationFrom2PointsAndAngles(sevenTemp, eightTemp, 60, 60);
@@ -49,12 +48,10 @@ SimpleStaticCalc::unitTestsHere()
 		return false;
 	}
 
-
 	cv::Point fiveTemp(400, 400);
 	cv::Point sixTemp(800, 100);
 	cv::Point robotOrigLocation2 = get3rdPointLocationFrom2PointsAndAngles(fiveTemp, sixTemp, 90.0 - 36.87, 36.87);
 	if (robotOrigLocation2.x != 400 || robotOrigLocation2.y != 100)
-		//if (robotOrigLocation2.x != 800 || robotOrigLocation2.y != 400)
 	{
 		std::cout << "7th:\t" << robotOrigLocation2.x << "\tand:\t" << robotOrigLocation2.y << std::endl;
 		return false;
@@ -77,7 +74,6 @@ SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles(cv::Point& startPoint,
 	double xCord = (pow(leftLength, 2) - pow(rightLength, 2) + pow(mainLength, 2)) / (mainLength * 2);
 	double yCord = -1 * pow(pow(leftLength, 2) - pow(xCord, 2), 0.5);
 
-	// TODO: find angle away from left to right straight that origStartPoint and origEndPoint are at
 	cv::Point shiftedEndPointZero(endPoint.x - startPoint.x, endPoint.y - startPoint.y);
 	double rotationalAngle = -1.0;
 	if (shiftedEndPointZero.x == 0 && shiftedEndPointZero.y > 0)
@@ -94,7 +90,6 @@ SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles(cv::Point& startPoint,
 		if (shiftedEndPointZero.y < 0)
 			rotationalAngle *= -1;
 	}
-
 
 	double rotationalPointX = cos(rotationalAngle * PI / 180) * xCord - sin(rotationalAngle * PI / 180) * yCord;
 	double rotationalPointY = sin(rotationalAngle * PI / 180) * xCord + cos(rotationalAngle * PI / 180) * yCord;
