@@ -8,10 +8,23 @@ class SimpleStaticCalc
 {
 	public:
 		static double twoPointDistance(cv::Point& first, cv::Point& second);
+		static bool twoPointsClose(cv::Point& first, cv::Point& second);
+		static cv::Point get3rdPointLocationFrom2PointsAndAngles(cv::Point& startPoint, cv::Point& endPoint, double startPointAngle, double endPointAngle);
 
+		static bool unitTestsHere();
+
+		#define PI 3.14159265
 
 		const static int DEPTH_WIDTH = 512;
 		const static int DEPTH_HEIGHT = 424;
+
+
+		const static int COLOR_WIDTH = 1920;
+		const static int COLOR_HEIGHT = 1080;
+		const static int DEPTH_IMG_SIZE = DEPTH_WIDTH * DEPTH_HEIGHT;
+		const static int DEPTH_MAX_DEPTH = 4500;
+		const static int DEPTH_MIN_DEPTH = 500;
+
 	private:
 		
 };

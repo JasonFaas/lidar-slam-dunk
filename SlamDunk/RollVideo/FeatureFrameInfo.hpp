@@ -9,6 +9,10 @@ class FeatureFrameInfo
 	public:
 		FeatureFrameInfo(int currFrame, cv::Point& start, cv::Point& end);
 
+		bool newFeatureCloseToThis(cv::Point& pointOne, cv::Point& pointTwo, int frame);
+		std::tuple<cv::Point, cv::Point> getPoints();
+
+		bool unitTestsHere();
 	private:
 		int frame = -1;
 		cv::Point startPoint = NULL;
@@ -18,9 +22,7 @@ class FeatureFrameInfo
 		bool validFeature = false;
 		bool onEdge = false;
 
-		bool featureOnEdge();
-
+		bool isFeatureOnEdge();
+		bool isValidFeature();
 		void calculateInitialAngles();
-
-		#define PI 3.14159265
 };

@@ -13,6 +13,7 @@
 #include "DepthFeature.hpp"
 
 #include "SlamHelper.hpp"
+#include "FeatureFrameInfo.hpp"
 
 bool runAllUnitTestsHere();
 
@@ -75,16 +76,26 @@ bool runAllUnitTestsHere()
 {
 	cv::Point testFirst(10, 10);
 	cv::Point testSecond(20, 20);
-	DepthFeature * testDepthFeature = new DepthFeature("empty", testFirst, testSecond, -1);
-	if (!testDepthFeature->unitTestsHere())
+	DepthFeature testDepthFeature("empty", testFirst, testSecond, -1);
+	if (!testDepthFeature.unitTestsHere())
 	{
 		std::cout << "Error with DepthFeature unit tests" << std::endl;
 		std::cin.ignore();
 		return false;
 	}
-	//TODO SafeRelease(testDepthFeature);
-	//TODO delete testFirst;
-	//TODO delete testSecond;
+	if (!SimpleStaticCalc::unitTestsHere())
+	{
+		std::cout << "Error with SimpleStaticCalc unit tests" << std::endl;
+		std::cin.ignore();
+		return false;
+	}
+	FeatureFrameInfo framedUnitTests(-1, cv::Point(100, 100), cv::Point(400, 400));
+	if (!framedUnitTests.unitTestsHere())
+	{
+		std::cout << "Error with FeatureFrameInfo unit tests" << std::endl;
+		std::cin.ignore();
+		return false;
+	}
 
 	return true;
 }

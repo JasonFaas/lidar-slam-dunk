@@ -4,6 +4,7 @@
 #include "opencv2/opencv.hpp"
 #include <ppl.h>
 #include "DepthFeature.hpp"
+#include "SimpleStaticCalc.hpp"
 
 class SlamHelper
 {
@@ -29,14 +30,7 @@ class SlamHelper
 		const int dilation_size = 20;
 		const int max_dilation_iterations = 20;
 
-		const int COLOR_WIDTH = 1920;
-		const int COLOR_HEIGHT = 1080;
-		const int DEPTH_IMG_SIZE = DEPTH_WIDTH * DEPTH_HEIGHT;
-		const int DEPTH_MAX_DEPTH = 4500;
-		const int DEPTH_MIN_DEPTH = 500;
-
-		const int rowOfInterest = DEPTH_HEIGHT / 2;
-
 		const int TOTAL_X_OFFSET = 400;
 		const int TOTAL_Y_OFFSET = 100;
+		const static int rowOfInterest = SimpleStaticCalc::DEPTH_HEIGHT / 2;
 };

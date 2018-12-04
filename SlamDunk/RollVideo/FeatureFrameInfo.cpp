@@ -15,40 +15,34 @@ FeatureFrameInfo::FeatureFrameInfo(int currFrame, cv::Point& start, cv::Point& e
 	startPoint = start;
 	endPoint = end;
 
-
-	// Calculate initial angles
-	calculateInitialAngles();
-
-
-
-	onEdge = featureOnEdge();
-
-
-
-	// TODO
-	validFeature = true;
+	validFeature = isValidFeature();
+	if (validFeature)
+		calculateInitialAngles();
+	onEdge = isFeatureOnEdge();
 }
 
 
 
 bool
-FeatureFrameInfo::featureOnEdge()
+FeatureFrameInfo::isFeatureOnEdge()
 {
 	int nearEdgeMax = 10;
 	std::vector<int> verifyPoints = { startPoint.x, endPoint.x };
 	for (int point : verifyPoints)
 	{
-		if (point < nearEdgeMax || SlamHelper::DEPTH_WIDTH - point < nearEdgeMax)
+		if (point < nearEdgeMax || SimpleStaticCalc::DEPTH_WIDTH - point < nearEdgeMax)
 			return true;
 	}
 
 	return false;
 }
 
-void
-FeatureFrameInfo::calculateInitialAngles()
+bool
+FeatureFrameInfo::isValidFeature()
 {
-	cv::Point currRobotPoint(SlamHelper::DEPTH_WIDTH / 2, 0);
+	validFeature = true;
+
+	cv::Point currRobotPoint(SimpleStaticCalc::DEPTH_WIDTH / 2, 0);
 	double distanceMain = SimpleStaticCalc::twoPointDistance(startPoint, endPoint);
 	double distanceLeft = SimpleStaticCalc::twoPointDistance(startPoint, currRobotPoint);
 	double distanceRight = SimpleStaticCalc::twoPointDistance(currRobotPoint, endPoint);
@@ -66,6 +60,15 @@ FeatureFrameInfo::calculateInitialAngles()
 			break;
 		}
 	}
+}
+
+void
+FeatureFrameInfo::calculateInitialAngles()
+{
+	cv::Point currRobotPoint(SimpleStaticCalc::DEPTH_WIDTH / 2, 0);
+	double distanceMain = SimpleStaticCalc::twoPointDistance(startPoint, endPoint);
+	double distanceLeft = SimpleStaticCalc::twoPointDistance(startPoint, currRobotPoint);
+	double distanceRight = SimpleStaticCalc::twoPointDistance(currRobotPoint, endPoint);
 	// only calcuate angle if valid triangle
 	if (validFeature)
 	{
@@ -74,5 +77,58 @@ FeatureFrameInfo::calculateInitialAngles()
 
 		initialPart = (pow(distanceMain, 2) + pow(distanceRight, 2) - pow(distanceLeft, 2)) / (2 * distanceMain * distanceRight);
 		endPointAngle = acos(initialPart) * 180 / PI;
+	}
+}
+
+bool 
+FeatureFrameInfo::newFeatureCloseToThis(cv::Point& pointOne, cv::Point& pointTwo, int newFrame)
+{
+	// Simple invalidating conditions
+	if (!validFeature || onEdge || newFrame - 1 != frame)
+		return false;
+
+	bool pointsCloseForward = SimpleStaticCalc::twoPointsClose(pointOne, startPoint) && SimpleStaticCalc::twoPointsClose(pointTwo, endPoint);
+	bool pointsCloseBackward = SimpleStaticCalc::twoPointsClose(pointOne, endPoint) && SimpleStaticCalc::twoPointsClose(pointTwo, startPoint);
+
+	return pointsCloseForward || pointsCloseForward;
+}
+
+std::tuple<cv::Point, cv::Point> 
+FeatureFrameInfo::getPoints()
+{
+	return std::make_tuple(startPoint, endPoint);
+}
+
+bool
+FeatureFrameInfo::unitTestsHere()
+{
+
+	cv::Point firstTemp(10, 10);
+	cv::Point secondTemp(15, 15);
+	cv::Point leftEdgeTemp(4, 25);
+	cv::Point rightEdgeTemp(SimpleStaticCalc::DEPTH_WIDTH - 3, 25);
+
+	startPoint = firstTemp;
+	endPoint = leftEdgeTemp;
+	if (!isFeatureOnEdge())
+	{
+		std::cout << "3rd" << std::endl;
+		return false;
+	}
+
+	startPoint = rightEdgeTemp;
+	endPoint = firstTemp;
+	if (!isFeatureOnEdge())
+	{
+		std::cout << "4th" << std::endl;
+		return false;
+	}
+
+	startPoint = firstTemp;
+	endPoint = secondTemp;
+	if (isFeatureOnEdge())
+	{
+		std::cout << "5th" << std::endl;
+		return false;
 	}
 }

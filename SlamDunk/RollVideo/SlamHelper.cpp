@@ -183,7 +183,7 @@ SlamHelper::realizeNewFeatureAndLinkExisting(cv::Mat& depthImageRO)
 					if (existingFeature.recentCloseToNewFeature(newStartPoint, newEndPoint, frameTracker))
 					{
 						newFeature = false;
-						//newFeatures.push_back(existingFeature);
+						existingFeature.addNewFeatureFrame(newStartPoint, newEndPoint, frameTracker);
 						break;
 					}
 				}
@@ -232,10 +232,11 @@ SlamHelper::drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat
 		//TODO if new feature is existing and non-edge, attempt to update robot position
 		if (newFeature.isRecentFeature())
 		{
-			// original robot position
-			cv::Point originalRobotLocation = newFeature.getOrigRobotLocationBasedOnRecentPoints();
-			previousRobotGuessX.push_back(originalRobotLocation.x);
-			previousRobotGuessY.push_back(originalRobotLocation.y);
+			// TODO: Reenable all this for actual desired result
+			//// original robot position
+			//cv::Point originalRobotLocation = newFeature.getOrigRobotLocationBasedOnRecentPoints();
+			//previousRobotGuessX.push_back(originalRobotLocation.x);
+			//previousRobotGuessY.push_back(originalRobotLocation.y);
 		}
 
 
