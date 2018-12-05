@@ -19,7 +19,7 @@ bool
 SimpleStaticCalc::twoPointsClose(cv::Point& first, cv::Point& second)
 {
 	double distance = twoPointDistance(first, second);
-	return distance < 16;
+	return distance < 20;
 }
 
 bool
@@ -126,6 +126,21 @@ SimpleStaticCalc::calculatePointsFromEstimations(std::vector<int> estimationsX, 
 cv::Point
 SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles(cv::Point& startPoint, cv::Point& endPoint, double startPointAngle, double endPointAngle)
 {
+	if (startPointAngle < 0.5 || endPointAngle < 0.5)
+	{
+		std::cout << "!!!Error!!! Point from standard!!!" << std::endl;
+
+
+		std::cout << "\tStart x:\t" << std::to_string(startPoint.x) << std::endl;
+		std::cout << "\tStart y:\t" << std::to_string(startPoint.y) << std::endl;
+		std::cout << "\tEnd x:\t" << std::to_string(endPoint.x) << std::endl;
+		std::cout << "\tEnd y:\t" << std::to_string(endPoint.y) << std::endl;
+		std::cout << "\tStart Angle:\t" << std::to_string(startPointAngle) << std::endl;
+		std::cout << "\tEnd Angle:\t" << std::to_string(endPointAngle) << std::endl;
+		throw std::invalid_argument("Angle too Sharp::SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles");
+	}
+
+
 	double mainLength = twoPointDistance(endPoint, startPoint);
 
 	double newPointAngle = 180 - endPointAngle - startPointAngle;
@@ -186,7 +201,7 @@ SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles(cv::Point& startPoint,
 
 	//std::cout << std::to_string(mainLength) << std::endl;
 
-	if (std::abs(returnPointRotated.x > 1000) || returnPointRotated.y > 1000 || returnPointRotated.y < -100)
+	if (returnPointRotated.x < -100 || returnPointRotated.x > 1000 || returnPointRotated.y > 1000 || returnPointRotated.y < -100)
 	{
 		std::cout << "!!!Error!!! Point from standard!!!" << std::endl;
 

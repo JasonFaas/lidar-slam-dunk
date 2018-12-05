@@ -20,6 +20,7 @@ class SlamHelper
 		std::vector<DepthFeature> realizeNewFeatureAndLinkExisting(cv::Mat& depthImageRO);
 		void drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat& overheadCopy, cv::Mat& depthCopy);
 		std::tuple<cv::Point, cv::Point> featureFrameOneGuess(cv::Point& newStartPoint, cv::Point& newEndPoint, DepthFeature& existingCurrentFeature);
+		void drawNewRobotLocation();
 
 		cv::Mat totalRep = cv::Mat(cv::Size(1600, 800), CV_8UC3, cv::Scalar(0, 0, 0));
 
@@ -31,7 +32,7 @@ class SlamHelper
 		const int max_dilation_iterations = 20;
 
 		const int TOTAL_X_OFFSET = 400;
-		const int TOTAL_Y_OFFSET = 100;
+		const int TOTAL_Y_OFFSET = 400;
 		const static int rowOfInterest = SimpleStaticCalc::DEPTH_HEIGHT / 2;
 
 		void whichExistingFeaturesDoNotHaveFrameOnePoints(std::vector<DepthFeature> newFeatures);
