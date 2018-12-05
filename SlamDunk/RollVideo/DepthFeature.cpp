@@ -54,7 +54,6 @@ DepthFeature::getRecentPoints()
 std::tuple<cv::Point, cv::Point>
 DepthFeature::getFrameOnePoints()
 {
-	// TODO add more error handling - may be valid failure
 	if (!hasFrameOnePoints)
 		throw std::invalid_argument("Invalid_Feature:DepthFeature::getFrameOnePoints:" + std::string(hasFrameOnePoints ? "TRUE" : "FALSE") + ":" + featureName);
 	return std::make_tuple(startPointFrameOne, endPointFrameOne);
@@ -94,18 +93,13 @@ DepthFeature::isBrandNew(int currentFrame)
 }
 
 cv::Point
-DepthFeature::getNewRobotLocationRelativeToPreviousLocation()
+DepthFeature::getNewRobotLocation()
 {
 	FeatureFrameInfo recentInfo = featureFrames.back();
-	FeatureFrameInfo originalInfo = featureFrames.end()[-2];
-
-	cv::Point startPoint, endPoint;
-	std::tie(startPoint, endPoint) = recentInfo.getPoints();
 	double startPointAngle, endPointAngle;
-	std::tie(startPointAngle, endPointAngle) = originalInfo.getAngles();
-	cv::Point newRobotLocationPoint = SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles(startPoint, endPoint, startPointAngle, endPointAngle);
-
-	// from angles of 
+	std::tie(startPointAngle, endPointAngle) = recentInfo.getAngles();
+	
+	cv::Point newRobotLocationPoint = SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles(startPointFrameOne, endPointFrameOne, startPointAngle, endPointAngle);
 
 	return newRobotLocationPoint;
 }

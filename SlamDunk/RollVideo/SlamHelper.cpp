@@ -140,9 +140,6 @@ SlamHelper::linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage)
 std::vector<DepthFeature>
 SlamHelper::realizeNewFeatureAndLinkExisting(cv::Mat& depthImageRO)
 {
-	// TODO May not need to return newFeatures variable as existingFeatures now has everything
-	// TODO Wednesday Dec-5
-
 	std::vector<DepthFeature> newFeatures = {};
 	std::vector<DepthFeature> existingFeaturesInCurrent = {};
 
@@ -208,7 +205,6 @@ SlamHelper::realizeNewFeatureAndLinkExisting(cv::Mat& depthImageRO)
 	if (existingFeaturesInCurrent.size() == 0 && frameTracker > 1)
 		std::cout << "\t!!!Existing feature in current count is ZERO!!!" << std::endl;
 
-	// TODONE for each new feature - should have an 'location based on frame 1' - 'frame1StartPoint' & 'frame1EndPoint'
 	cv::Point newStartPoint(-1, -1);
 	cv::Point newEndPoint(-1, -1);
 	cv::Point newF1StartPoint(-1, -1);
@@ -266,39 +262,47 @@ SlamHelper::realizeNewFeatureAndLinkExisting(cv::Mat& depthImageRO)
 void
 SlamHelper::drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat& overheadCopy, cv::Mat& depthCopy)
 {
+	// Place original robot location on totalRep
+	if (frameTracker == 1)
+		cv::circle(totalRep, cv::Point(TOTAL_X_OFFSET + SimpleStaticCalc::ROBOT_POS_X, TOTAL_Y_OFFSET + SimpleStaticCalc::ROBOT_POS_Y), 4, cv::Scalar(100, 50, 255), -1);
 
 	cv::Point startPoint;
 	cv::Point endPoint;
-	cv::Point currRobotPoint = cv::Point(TOTAL_X_OFFSET + SimpleStaticCalc::ROBOT_POS_X, TOTAL_Y_OFFSET + SimpleStaticCalc::ROBOT_POS_Y);
 
 	std::vector<int> previousRobotGuessX = {};
 	std::vector<int> previousRobotGuessY = {};
+	std::mutex values_mutex;
 
 	// Get new robot position
-	for (DepthFeature& existingFeature : existingFeatures)
-	{
-		if (existingFeature.isCurrentAndPrevious(frameTracker))
+	Concurrency::parallel_for_each(existingFeatures.begin(), existingFeatures.end(), [&](DepthFeature & df) {
+		if (df.isCurrentAndPrevious(frameTracker))
 		{
-			// TODO May want to save robotLocationNew (and other screen elements) so they can be quickly referenced as needed - other elements could easily be saved in FeatureFrameInfo
-			cv::Point robotLocationNew = existingFeature.getNewRobotLocationRelativeToPreviousLocation();
-			//std::cout << "\tLocation to point to:\t" << robotLocationNew.x << ":" << robotLocationNew.y << std::endl;
+			cv::Point robotLocationNew = df.getNewRobotLocation();
 
+			values_mutex.lock();
 			previousRobotGuessX.push_back(robotLocationNew.x);
 			previousRobotGuessY.push_back(robotLocationNew.y);
+			values_mutex.unlock();
 		}
-		else if (existingFeature.isBrandNew(frameTracker))
-		{
-			// TODO delete this else if
-			//std::cout << "\tBrand New Feature:\t" << existingFeature.getFeatureName() << std::endl;
-		}
+	});
+	if (previousRobotGuessX.size() > 0)
+	{
+		cv::Point finalGuess = SimpleStaticCalc::calculatePointsFromEstimations(previousRobotGuessX, previousRobotGuessY);
+		cv::Point robotEstimation = cv::Point(finalGuess.x + TOTAL_X_OFFSET, finalGuess.y + TOTAL_Y_OFFSET);
 
+		int h = (int)((frameTracker * 15) % 180);
+		int s = 200;
+		int v = 200;
+		cv::Mat rgb;
+		cv::Mat hsv(1, 1, CV_8UC3, cv::Scalar(h, s, v));
+		cv::cvtColor(hsv, rgb, CV_HSV2BGR);
+		cv::Scalar newScalar(rgb.data[0], rgb.data[1], rgb.data[2]);
+
+		cv::circle(totalRep, robotEstimation, 4, newScalar, -1);
 	}
-
 
 	for (DepthFeature& newFeature : newFeatures)
 	{
-		//std::tie(startPoint, endPoint) = newFeature.getRecentPoints();
-		// TODO Investigate replacing above with below
 		try {
 			std::tie(startPoint, endPoint) = newFeature.getFrameOnePoints();
 		}
@@ -317,17 +321,8 @@ SlamHelper::drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat
 		int totalLineColor = 120 + frameTracker * 15 % (250 - 120);
 		cv::line(totalRep, cv::Point(startPoint.x + TOTAL_X_OFFSET, startPoint.y + TOTAL_Y_OFFSET), cv::Point(endPoint.x + TOTAL_X_OFFSET, endPoint.y + TOTAL_Y_OFFSET), cv::Scalar(totalLineColor, totalLineColor, totalLineColor), 3, 8, 0);
 	}
-	cv::circle(totalRep, currRobotPoint, 4, cv::Scalar(100, 50, 255), -1);
+	
 
-	if (previousRobotGuessX.size() > 0)
-	{
-		cv::Point finalGuess = SimpleStaticCalc::calculatePointsFromEstimations(previousRobotGuessX, previousRobotGuessY);
-		cv::Point robotEstimation = cv::Point(finalGuess.x + TOTAL_X_OFFSET, finalGuess.y + TOTAL_Y_OFFSET);
-		cv::circle(totalRep, robotEstimation, 4, cv::Scalar(250, 250, 100), -1);
-	}
-	else {
-		std::cout << "Maybe Later" << std::endl;
-	}
 }
 
 std::tuple<cv::Point, cv::Point>
@@ -364,11 +359,8 @@ SlamHelper::featureFrameOneGuess(cv::Point& newStartPoint, cv::Point& newEndPoin
 void
 SlamHelper::whichExistingFeaturesDoNotHaveFrameOnePoints(std::vector<DepthFeature> newFeatures)
 {
-	for (DepthFeature& existingFeature : existingFeatures)
-	{
-		if (!existingFeature.canAccessFrameOnePoints())
-		{
-			std::cout << "!!! " << existingFeature.getFeatureName() << " Does not have frame ONe points" << std::endl;
-		}
-	}
+	Concurrency::parallel_for_each(existingFeatures.begin(), existingFeatures.end(), [&](DepthFeature& dp) {
+		if (!dp.canAccessFrameOnePoints())
+			std::cout << "!!! " << dp.getFeatureName() << " Does not have frame ONe points" << std::endl;
+	});
 }

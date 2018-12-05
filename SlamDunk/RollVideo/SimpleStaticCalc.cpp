@@ -186,5 +186,19 @@ SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles(cv::Point& startPoint,
 
 	//std::cout << std::to_string(mainLength) << std::endl;
 
+	if (std::abs(returnPointRotated.x > 1000) || returnPointRotated.y > 1000 || returnPointRotated.y < -100)
+	{
+		std::cout << "!!!Error!!! Point from standard!!!" << std::endl;
+
+
+		std::cout << "\tStart x:\t" << std::to_string(startPoint.x) << std::endl;
+		std::cout << "\tStart y:\t" << std::to_string(startPoint.y) << std::endl;
+		std::cout << "\tEnd x:\t" << std::to_string(endPoint.x) << std::endl;
+		std::cout << "\tEnd y:\t" << std::to_string(endPoint.y) << std::endl;
+		std::cout << "\tStart Angle:\t" << std::to_string(startPointAngle) << std::endl;
+		std::cout << "\tEnd Angle:\t" << std::to_string(endPointAngle) << std::endl;
+	}
+
+
 	return returnPointRotated;
 }

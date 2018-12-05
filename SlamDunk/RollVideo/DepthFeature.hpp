@@ -20,7 +20,7 @@ class DepthFeature
 		bool isCurrentAndPrevious(int currentFrame);
 		bool isBrandNew(int currentFrame);
 
-		cv::Point getNewRobotLocationRelativeToPreviousLocation();
+		cv::Point getNewRobotLocation();
 
 		bool unitTestsHere();
 		bool canAccessFrameOnePoints();
