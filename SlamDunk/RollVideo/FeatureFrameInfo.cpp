@@ -18,8 +18,6 @@ FeatureFrameInfo::FeatureFrameInfo(int currFrame, cv::Point& start, cv::Point& e
 	cv::Point currRobotLocation(SimpleStaticCalc::DEPTH_WIDTH / 2, 0);
 	std::tie(startPointAngle, endPointAngle) = SimpleStaticCalc::calculateInitialAnglesTo3rdPoint(start, end, currRobotLocation);
 	onEdge = isFeatureOnEdge();
-
-	validFeature = validateFeature();
 }
 
 
@@ -38,23 +36,11 @@ FeatureFrameInfo::isFeatureOnEdge()
 	return false;
 }
 
-bool
-FeatureFrameInfo::isValidFeature()
-{
-	return validFeature;
-}
-
-bool
-FeatureFrameInfo::validateFeature()
-{
-	return SimpleStaticCalc::isValidTriangle(startPoint, endPoint, cv::Point(SimpleStaticCalc::DEPTH_WIDTH / 2, 0));	
-}
-
 bool 
 FeatureFrameInfo::newFeatureCloseToThis(cv::Point& pointOne, cv::Point& pointTwo, int newFrame)
 {
 	// Simple invalidating conditions
-	if (!validFeature || onEdge || newFrame - 1 != frame)
+	if (onEdge || newFrame - 1 != frame)
 		return false;
 
 	bool pointsCloseForward = SimpleStaticCalc::twoPointsClose(pointOne, startPoint) && SimpleStaticCalc::twoPointsClose(pointTwo, endPoint);
@@ -66,8 +52,6 @@ FeatureFrameInfo::newFeatureCloseToThis(cv::Point& pointOne, cv::Point& pointTwo
 std::tuple<cv::Point, cv::Point> 
 FeatureFrameInfo::getPoints()
 {
-	if (!validFeature)
-		throw std::invalid_argument("Invalid_Feature:FeatureFrameInfo::getPoints");
 	return std::make_tuple(startPoint, endPoint);
 }
 

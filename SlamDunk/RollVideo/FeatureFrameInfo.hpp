@@ -13,7 +13,6 @@ class FeatureFrameInfo
 		std::tuple<cv::Point, cv::Point> getPoints();
 		std::tuple<double, double> getAngles();
 		int FeatureFrameInfo::getFrame();
-		bool isValidFeature();
 
 		bool unitTestsHere();
 	private:
@@ -22,7 +21,6 @@ class FeatureFrameInfo
 		cv::Point endPoint = NULL;
 		double startPointAngle = -1;
 		double endPointAngle = -1;
-		bool validFeature = false;
 		bool onEdge = false;
 
 		bool isFeatureOnEdge();

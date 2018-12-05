@@ -18,8 +18,7 @@ DepthFeature::DepthFeature(
 	featureName = name;
 
 	FeatureFrameInfo firstFeatureFrameInfo(frame, start, end);
-	validFeature = firstFeatureFrameInfo.isValidFeature();
-	if (frame == 1 && validFeature)
+	if (frame == 1)
 	{
 		hasFrameOnePoints = true;
 		startPointFrameOne = start;
@@ -38,7 +37,7 @@ DepthFeature::unitTestsHere()
 bool
 DepthFeature::recentCloseToNewFeature(cv::Point& pointOne, cv::Point& pointTwo, int frame)
 {
-	if (featureFrames.size() == 0 || !validFeature)
+	if (featureFrames.size() == 0)
 		return false;
 
 	FeatureFrameInfo backElement = featureFrames.back();
@@ -56,8 +55,8 @@ std::tuple<cv::Point, cv::Point>
 DepthFeature::getFrameOnePoints()
 {
 	// TODO add more error handling - may be valid failure
-	if (!(hasFrameOnePoints && validFeature))
-		throw std::invalid_argument("Invalid_Feature:DepthFeature::getFrameOnePoints:" + std::to_string(hasFrameOnePoints) + ":" + std::to_string(validFeature));
+	if (!hasFrameOnePoints)
+		throw std::invalid_argument("Invalid_Feature:DepthFeature::getFrameOnePoints:" + std::to_string(hasFrameOnePoints));
 	return std::make_tuple(startPointFrameOne, endPointFrameOne);
 }
 
@@ -78,12 +77,8 @@ DepthFeature::getFeatureName()
 void 
 DepthFeature::addNewFeatureFrame(cv::Point& pointOne, cv::Point& pointTwo, int frame)
 {
-	if (validFeature)
-	{
-		FeatureFrameInfo newestFeature(frame, pointOne, pointTwo);
-		if (newestFeature.isValidFeature())
-			featureFrames.push_back(newestFeature);
-	}
+	FeatureFrameInfo newestFeature(frame, pointOne, pointTwo);
+	featureFrames.push_back(newestFeature);
 }
 
 bool

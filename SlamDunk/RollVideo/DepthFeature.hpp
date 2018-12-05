@@ -30,5 +30,4 @@ class DepthFeature
 		cv::Point startPointFrameOne = NULL;
 		cv::Point endPointFrameOne = NULL;
 		bool hasFrameOnePoints = false;
-		bool validFeature = false;
 };

@@ -95,7 +95,7 @@ SimpleStaticCalc::isValidTriangle(cv::Point& startPoint, cv::Point& endPoint, cv
 	for (int i = 0; i < 3; i++)
 	{
 		// IF a single side is longer than the other 2, invalid triangle
-		if (perimeter - threeSides[i] * 2 < 0)
+		if (perimeter - threeSides[i] < threeSides[i])
 		{
 			return false;
 		}
