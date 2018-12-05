@@ -15,7 +15,7 @@ FeatureFrameInfo::FeatureFrameInfo(int currFrame, cv::Point& start, cv::Point& e
 	startPoint = start;
 	endPoint = end;
 
-	cv::Point currRobotLocation(SimpleStaticCalc::DEPTH_WIDTH / 2, 0);
+	cv::Point currRobotLocation(SimpleStaticCalc::ROBOT_POS_X, SimpleStaticCalc::ROBOT_POS_Y);
 	std::tie(startPointAngle, endPointAngle) = SimpleStaticCalc::calculateInitialAnglesTo3rdPoint(start, end, currRobotLocation);
 	onEdge = isFeatureOnEdge();
 }

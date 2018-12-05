@@ -262,7 +262,7 @@ SlamHelper::drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat
 
 	cv::Point startPoint;
 	cv::Point endPoint;
-	cv::Point currRobotPoint = cv::Point(TOTAL_X_OFFSET + SimpleStaticCalc::DEPTH_WIDTH / 2, TOTAL_Y_OFFSET);
+	cv::Point currRobotPoint = cv::Point(TOTAL_X_OFFSET + SimpleStaticCalc::ROBOT_POS_X, TOTAL_Y_OFFSET + SimpleStaticCalc::ROBOT_POS_Y);
 
 	std::vector<int> previousRobotGuessX = {};
 	std::vector<int> previousRobotGuessY = {};

@@ -28,8 +28,8 @@ class SimpleStaticCalc
 		const static int DEPTH_MAX_DEPTH = 4500;
 		const static int DEPTH_MIN_DEPTH = 500;
 
-		const static int defaultRobotPosX = DEPTH_WIDTH / 2;
-		const static int defaultRobotPosY = 0;
+		const static int ROBOT_POS_X = DEPTH_WIDTH / 2;
+		const static int ROBOT_POS_Y = 0;
 
 
 	private:
