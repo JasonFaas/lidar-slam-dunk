@@ -127,8 +127,8 @@ SlamHelper::linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage)
 	depthImage.copyTo(depthCopy);
 	overheadImage.copyTo(overheadCopy);
 
-	std::vector<DepthFeature> newFeatures = realizeNewFeatureAndLinkExisting(depthImage);
-	drawLotsOfFeaturesV1(newFeatures, overheadCopy, depthCopy);
+	linkExistingToNewFeatures(depthImage);
+	drawLotsOfFeaturesV1(overheadCopy, depthCopy);
 
 	//std::cout << "Feature Count:\t" << existingFeatures.size() << std::endl;
 	cv::namedWindow("Overhead Extra");
@@ -141,8 +141,8 @@ SlamHelper::linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage)
 	return depthCopy;
 }
 
-std::vector<DepthFeature>
-SlamHelper::realizeNewFeatureAndLinkExisting(cv::Mat& depthImageRO)
+void
+SlamHelper::linkExistingToNewFeatures(cv::Mat& depthImageRO)
 {
 	std::vector<DepthFeature> newFeatures = {};
 	std::vector<DepthFeature> existingFeaturesInCurrent = {};
@@ -258,53 +258,43 @@ SlamHelper::realizeNewFeatureAndLinkExisting(cv::Mat& depthImageRO)
 		}
 		newFeature.updateFrameOnePoints(finalStartGuess, finalEndGuess);
 	}
-	whichExistingFeaturesDoNotHaveFrameOnePoints(newFeatures);
-
-	return newFeatures;
+	whichExistingFeaturesDoNotHaveFrameOnePoints();
 }
 
 void
-SlamHelper::drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat& overheadCopy, cv::Mat& depthCopy)
+SlamHelper::drawLotsOfFeaturesV1(cv::Mat& overheadCopy, cv::Mat& depthCopy)
 {
 	// Get new robot position
 	drawNewRobotLocation();
 
-	cv::Point startPoint;
-	cv::Point endPoint;
 
-	//Concurrency::parallel_for_each(existingFeatures.begin(), existingFeatures.end(), [&](DepthFeature & df) {
-	//	if (df.isCurrentAndPrevious(frameTracker))
-	//	{
+	Concurrency::parallel_for_each(existingFeatures.begin(), existingFeatures.end(), [&](DepthFeature & df) {
 
-	//	}
-	//	else if (df.isBrandNew(frameTracker))
-	//	{
-
-	//	}
-	//});
-
-	for (DepthFeature& newFeature : newFeatures)
-	{
 		try {
-			std::tie(startPoint, endPoint) = newFeature.getFrameOnePoints();
+			cv::Point startPoint;
+			cv::Point endPoint;
+			std::tie(startPoint, endPoint) = df.getFrameOnePoints();
+
+			if (df.isCurrentAndPrevious(frameTracker) || df.isBrandNew(frameTracker))
+			{
+				// Overhead Representaiton
+				cv::line(overheadCopy, cv::Point(startPoint.x, startPoint.y), cv::Point(endPoint.x, endPoint.y), cv::Scalar(180), 3, 8, 0);
+				cv::putText(overheadCopy, df.getFeatureName(), cv::Point(startPoint.x, startPoint.y + 40), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(200));
+				// Depth Representation
+				cv::line(depthCopy, cv::Point(startPoint.x, rowOfInterest), cv::Point(endPoint.x, rowOfInterest), cv::Scalar(0), 3, 8, 0);
+				cv::putText(depthCopy, df.getFeatureName(), cv::Point(startPoint.x, rowOfInterest + 40), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(0));
+			}
+			if (df.isBrandNew(frameTracker))
+			{
+				// Full Representation
+				int totalLineColor = 120 + frameTracker * 15 % (250 - 120);
+				cv::line(totalRep, cv::Point(startPoint.x + TOTAL_X_OFFSET, startPoint.y + TOTAL_Y_OFFSET), cv::Point(endPoint.x + TOTAL_X_OFFSET, endPoint.y + TOTAL_Y_OFFSET), cv::Scalar(totalLineColor, totalLineColor, totalLineColor), 3, 8, 0);
+			}
 		}
 		catch (std::invalid_argument e) {
-			std::cout << "Invalid argument thrown accessing recent Frame One Points for display" << std::endl;
-			continue;
+			std::cout << "Invalid argument thrown accessing recent Frame One Points for display" << std::endl;	
 		}
-
-		// Overhead Representaiton
-		cv::line(overheadCopy, cv::Point(startPoint.x, startPoint.y), cv::Point(endPoint.x, endPoint.y), cv::Scalar(180), 3, 8, 0);
-		cv::putText(overheadCopy, newFeature.getFeatureName(), cv::Point(startPoint.x, startPoint.y + 40), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(200));
-		// Depth Representation
-		cv::line(depthCopy, cv::Point(startPoint.x, rowOfInterest), cv::Point(endPoint.x, rowOfInterest), cv::Scalar(0), 3, 8, 0);
-		cv::putText(depthCopy, newFeature.getFeatureName(), cv::Point(startPoint.x, rowOfInterest + 40), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(0));
-		// Full Representation
-		int totalLineColor = 120 + frameTracker * 15 % (250 - 120);
-		cv::line(totalRep, cv::Point(startPoint.x + TOTAL_X_OFFSET, startPoint.y + TOTAL_Y_OFFSET), cv::Point(endPoint.x + TOTAL_X_OFFSET, endPoint.y + TOTAL_Y_OFFSET), cv::Scalar(totalLineColor, totalLineColor, totalLineColor), 3, 8, 0);
-	}
-	
-
+	});
 }
 
 std::tuple<cv::Point, cv::Point>
@@ -334,7 +324,7 @@ SlamHelper::featureFrameOneGuess(cv::Point& newStartPoint, cv::Point& newEndPoin
 
 //TODO DELETE THIS DEBUG METHOD
 void
-SlamHelper::whichExistingFeaturesDoNotHaveFrameOnePoints(std::vector<DepthFeature> newFeatures)
+SlamHelper::whichExistingFeaturesDoNotHaveFrameOnePoints()
 {
 	Concurrency::parallel_for_each(existingFeatures.begin(), existingFeatures.end(), [&](DepthFeature& dp) {
 		if (!dp.canAccessFrameOnePoints())

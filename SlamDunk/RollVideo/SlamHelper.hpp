@@ -17,8 +17,8 @@ class SlamHelper
 		cv::Mat linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage);
 	private:
 		std::vector<DepthFeature> existingFeatures = {};
-		std::vector<DepthFeature> realizeNewFeatureAndLinkExisting(cv::Mat& depthImageRO);
-		void drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat& overheadCopy, cv::Mat& depthCopy);
+		void linkExistingToNewFeatures(cv::Mat& depthImageRO);
+		void drawLotsOfFeaturesV1(cv::Mat& overheadCopy, cv::Mat& depthCopy);
 		std::tuple<cv::Point, cv::Point> featureFrameOneGuess(cv::Point& newStartPoint, cv::Point& newEndPoint, DepthFeature& existingCurrentFeature);
 		void drawNewRobotLocation();
 
@@ -35,5 +35,5 @@ class SlamHelper
 		const int TOTAL_Y_OFFSET = 400;
 		const static int rowOfInterest = SimpleStaticCalc::DEPTH_HEIGHT / 2;
 
-		void whichExistingFeaturesDoNotHaveFrameOnePoints(std::vector<DepthFeature> newFeatures);
+		void whichExistingFeaturesDoNotHaveFrameOnePoints();
 };
