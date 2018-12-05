@@ -247,11 +247,18 @@ SlamHelper::realizeNewFeatureAndLinkExisting(cv::Mat& depthImageRO)
 		// Set Frame One Location for new Feature
 		cv::Point finalStartGuess = SimpleStaticCalc::calculatePointsFromEstimations(newFeatureFrameOneStartIdeasX, newFeatureFrameOneStartIdeasY);
 		cv::Point finalEndGuess = SimpleStaticCalc::calculatePointsFromEstimations(newFeatureFrameOneEndIdeasX, newFeatureFrameOneEndIdeasY);
-
+		
+		for (DepthFeature& existingFeature : existingFeatures)
+		{
+			if (existingFeature.getFeatureName() == newFeature.getFeatureName())
+			{
+				existingFeature.updateFrameOnePoints(finalStartGuess, finalEndGuess);
+				break;
+			}
+		}
 		newFeature.updateFrameOnePoints(finalStartGuess, finalEndGuess);
 	}
-	
-
+	whichExistingFeaturesDoNotHaveFrameOnePoints(newFeatures);
 
 	return newFeatures;
 }
@@ -296,7 +303,7 @@ SlamHelper::drawLotsOfFeaturesV1(std::vector<DepthFeature>& newFeatures, cv::Mat
 			std::tie(startPoint, endPoint) = newFeature.getFrameOnePoints();
 		}
 		catch (std::invalid_argument e) {
-			std::cout << "Invalid argument throw accessing recent Frame One Points for display" << std::endl;
+			std::cout << "Invalid argument thrown accessing recent Frame One Points for display" << std::endl;
 			continue;
 		}
 
@@ -345,5 +352,23 @@ SlamHelper::featureFrameOneGuess(cv::Point& newStartPoint, cv::Point& newEndPoin
 	std::tie(ideaStartAngle, ideaEndAngle) = SimpleStaticCalc::calculateInitialAnglesTo3rdPoint(recentStartPoint, recentEndPoint, newEndPoint);
 	newF1EndPoint = SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles(recentF1StartPoint, recentF1EndPoint, ideaStartAngle, ideaEndAngle);
 
+	if (newF1StartPoint.y > 1000 || newF1EndPoint.y > 1000)
+	{
+		std::cout << std::to_string(ideaStartAngle) << ":" << std::to_string(ideaEndAngle) << ":" << std::to_string(recentF1StartPoint.x) << ":" << std::to_string(recentF1StartPoint.y) << ":" << std::to_string(recentF1EndPoint.x) << ":" << std::to_string(recentF1EndPoint.y) << ":" << std::endl;
+	}
+
 	return std::make_tuple(newF1StartPoint, newF1EndPoint);
+}
+
+//TODO DELETE THIS DEBUG METHOD
+void
+SlamHelper::whichExistingFeaturesDoNotHaveFrameOnePoints(std::vector<DepthFeature> newFeatures)
+{
+	for (DepthFeature& existingFeature : existingFeatures)
+	{
+		if (!existingFeature.canAccessFrameOnePoints())
+		{
+			std::cout << "!!! " << existingFeature.getFeatureName() << " Does not have frame ONe points" << std::endl;
+		}
+	}
 }

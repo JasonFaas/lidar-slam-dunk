@@ -23,6 +23,7 @@ class DepthFeature
 		cv::Point getNewRobotLocationRelativeToPreviousLocation();
 
 		bool unitTestsHere();
+		bool canAccessFrameOnePoints();
 
 	private:
 		std::string featureName = "empty";

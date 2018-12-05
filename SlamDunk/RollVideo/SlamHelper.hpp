@@ -33,4 +33,6 @@ class SlamHelper
 		const int TOTAL_X_OFFSET = 400;
 		const int TOTAL_Y_OFFSET = 100;
 		const static int rowOfInterest = SimpleStaticCalc::DEPTH_HEIGHT / 2;
+
+		void whichExistingFeaturesDoNotHaveFrameOnePoints(std::vector<DepthFeature> newFeatures);
 };

@@ -56,7 +56,7 @@ DepthFeature::getFrameOnePoints()
 {
 	// TODO add more error handling - may be valid failure
 	if (!hasFrameOnePoints)
-		throw std::invalid_argument("Invalid_Feature:DepthFeature::getFrameOnePoints:" + std::to_string(hasFrameOnePoints));
+		throw std::invalid_argument("Invalid_Feature:DepthFeature::getFrameOnePoints:" + std::string(hasFrameOnePoints ? "TRUE" : "FALSE") + ":" + featureName);
 	return std::make_tuple(startPointFrameOne, endPointFrameOne);
 }
 
@@ -108,4 +108,10 @@ DepthFeature::getNewRobotLocationRelativeToPreviousLocation()
 	// from angles of 
 
 	return newRobotLocationPoint;
+}
+
+bool
+DepthFeature::canAccessFrameOnePoints()
+{
+	return hasFrameOnePoints;
 }
