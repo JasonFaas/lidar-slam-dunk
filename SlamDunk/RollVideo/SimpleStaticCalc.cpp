@@ -64,6 +64,8 @@ SimpleStaticCalc::unitTestsHere()
 std::tuple<double, double>
 SimpleStaticCalc::calculateInitialAnglesTo3rdPoint(cv::Point& startPoint, cv::Point& endPoint, cv::Point& thirdPoint)
 {
+	if (showInputsDebug)
+		std::cout << "SimpleStaticCalc::calculateInitialAnglesTo3rdPoint\t" << startPoint.x << ":" << startPoint.y << ":" << endPoint.x << ":" << endPoint.y << ":" << thirdPoint.x << ":" << thirdPoint.y << std::endl;
 	if (!isValidTriangle(startPoint, endPoint, thirdPoint))
 		throw std::invalid_argument("Invalid_Feature:SimpleStaticCalc::calculateInitialAnglesTo3rdPoint");
 	
@@ -126,7 +128,12 @@ SimpleStaticCalc::calculatePointsFromEstimations(std::vector<int> estimationsX, 
 cv::Point
 SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles(cv::Point& startPoint, cv::Point& endPoint, double startPointAngle, double endPointAngle)
 {
-	if (startPointAngle < 0.5 || endPointAngle < 0.5)
+
+	if (showInputsDebug)
+		std::cout << "SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles\t" << startPoint.x << ":" << startPoint.y << ":" << endPoint.x << ":" << endPoint.y << ":" << startPointAngle << ":" << endPointAngle << std::endl;
+
+	double angleToSharp = 0.5;
+	if (startPointAngle < angleToSharp || endPointAngle < angleToSharp)
 	{
 		std::cout << "!!!Error!!! Point from standard!!!" << std::endl;
 

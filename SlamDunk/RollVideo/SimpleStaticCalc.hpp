@@ -31,6 +31,8 @@ class SimpleStaticCalc
 		const static int ROBOT_POS_X = DEPTH_WIDTH / 2;
 		const static int ROBOT_POS_Y = 0;
 
+		const static bool showInputsDebug = true;
+
 
 	private:
 		
