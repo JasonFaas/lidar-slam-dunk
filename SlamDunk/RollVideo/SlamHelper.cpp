@@ -126,7 +126,8 @@ SlamHelper::depthTo2DimAdjusted(cv::Mat& depthImage) //v2 to fov
 		//returnImg.at<uchar>(255 - (int)std::round(valueToSet), n) = 255;
 		float fx = 365.456f / 1.8;
 		//float fx = 150.456f;
-		returnImg.at<uchar>((int)std::round(valueToSet), 50+(int)std::round(((double)n)*valueToSet/fx)) = 255;
+		returnImg.at<uchar>((int)std::round(valueToSet), 50+(int)std::round(((double)n)*(valueToSet)/fx)) = 255;
+		//returnImg.at<uchar>((int)std::round(valueToSet), 50+(int)std::round(((double)n)*(valueToSet+255/1.8)/fx)) = 255;
 	});
 
 	return returnImg;
