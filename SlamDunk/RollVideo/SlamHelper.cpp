@@ -268,12 +268,15 @@ SlamHelper::drawLotsOfFeaturesV1(cv::Mat& overheadCopy, cv::Mat& depthCopy)
 			cv::Point startPoint;
 			cv::Point endPoint;
 			std::tie(startPoint, endPoint) = df.getFrameOnePoints();
+			cv::Point startPointRecent;
+			cv::Point endPointRecent;
+			std::tie(startPointRecent, endPointRecent) = df.getRecentPoints();
 
 			if (df.isCurrentAndPrevious(frameTracker) || df.isBrandNew(frameTracker))
 			{
 				// Overhead Representaiton
-				cv::line(overheadCopy, cv::Point(startPoint.x, startPoint.y), cv::Point(endPoint.x, endPoint.y), cv::Scalar(180), 3, 8, 0);
-				cv::putText(overheadCopy, df.getFeatureName(), cv::Point(startPoint.x, startPoint.y + 40), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(200));
+				cv::line(overheadCopy, startPointRecent, endPointRecent, cv::Scalar(180), 3, 8, 0);
+				cv::putText(overheadCopy, df.getFeatureName(), cv::Point(startPointRecent.x, startPointRecent.y + 40), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(200));
 				// Depth Representation
 				cv::line(depthCopy, cv::Point(startPoint.x, rowOfInterest), cv::Point(endPoint.x, rowOfInterest), cv::Scalar(0), 3, 8, 0);
 				cv::putText(depthCopy, df.getFeatureName(), cv::Point(startPoint.x, rowOfInterest + 40), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar(0));

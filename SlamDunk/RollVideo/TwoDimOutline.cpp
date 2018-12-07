@@ -30,9 +30,9 @@ int main()
 		return -1;
 
 
-	cv::VideoCapture capture(DEV_DIRECTORY + "Depth_2018_11_26_10_46_04.mp4");
+	//cv::VideoCapture capture(DEV_DIRECTORY + "Depth_2018_11_26_10_46_04.mp4");
 	//cv::VideoCapture capture(DEV_DIRECTORY + "Depth_2018_12_05_12_57_08.mp4");
-	//cv::VideoCapture capture(DEV_DIRECTORY + "Depth_2018_12_05_13_03_41.mp4");
+	cv::VideoCapture capture(DEV_DIRECTORY + "Depth_2018_12_05_13_03_41.mp4");
 	cv::Mat frame, bwFrame;
 
 	const std::string depthWindowName = "DepthVideo";
@@ -63,9 +63,11 @@ int main()
 		cv::namedWindow("Depth to 2D Adjusted");
 		imshow("Depth to 2D Adjusted", depthTo2dAdjusted);
 
+		//std::vector<int> depthTo2dVector = slamHelper->depthToVectorAdjusted(depthBlurred);
+
 		cv::Mat startAndEndPoints = slamHelper->linesOnCommonFeatures(depthBlurred, depthTo2d);
 		
-		if (frameTracker++ > 50) {
+		if (frameTracker++ > SimpleStaticCalc::frameJumpAhead) {
 			char waitKey = cv::waitKey(0);
 			if (waitKey == QUIT_KEY)
 				break;

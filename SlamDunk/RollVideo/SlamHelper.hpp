@@ -14,7 +14,9 @@ class SlamHelper
 		cv::Mat blurGoodDataOverBad(cv::Mat& depthImage);
 		cv::Mat depthTo2D(cv::Mat& depthImage);
 		cv::Mat depthTo2DimAdjusted(cv::Mat& depthImage);
+		//std::vector<int> depthToVectorAdjusted(cv::Mat& depthImage);
 		cv::Mat linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage);
+
 	private:
 		std::vector<DepthFeature> existingFeatures = {};
 		void linkExistingToNewFeatures(cv::Mat& depthImageRO);

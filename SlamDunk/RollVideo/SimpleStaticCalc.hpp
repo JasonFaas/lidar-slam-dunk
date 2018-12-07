@@ -13,6 +13,7 @@ class SimpleStaticCalc
 		static std::tuple<double, double> calculateInitialAnglesTo3rdPoint(cv::Point& startPoint, cv::Point& endPoint, cv::Point& thirdPoint);
 		static bool isValidTriangle(cv::Point& startPoint, cv::Point& endPoint, cv::Point& thirdPoint);
 		static cv::Point calculatePointsFromEstimations(std::vector<int> estimationsX, std::vector<int> estimationsY);
+		static int medianFromVector(std::vector<int> values);
 
 		static bool aboveSlopeOfMainLine(cv::Point& startPoint, cv::Point& endPoint, cv::Point& thirdPoint);
 
@@ -35,10 +36,13 @@ class SimpleStaticCalc
 
 		const static bool showInputsDebug = false;
 
-		const static int tuningFeatureLengthMin = 12;
-		const static int tuningValidFeatureLengthMin = 25;
-		const static int tuningfeatureLookAheadMax = 5;
+		const static int tuningFeatureLengthMin = 10;
+		const static int tuningValidFeatureLengthMin = 15;
+		const static int tuningfeatureLookAheadMax = 3;
 		const static int tuningdepthRangeAllowable = 5;
+		const static int frameJumpAhead = 0;
+		static constexpr double tuningAngleTooSharp = 2.0;
+
 
 
 	private:

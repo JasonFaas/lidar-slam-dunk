@@ -19,7 +19,7 @@ bool
 SimpleStaticCalc::twoPointsClose(cv::Point& first, cv::Point& second)
 {
 	double distance = twoPointDistance(first, second);
-	return distance < 25;
+	return distance < 16;
 }
 
 bool
@@ -331,9 +331,24 @@ SimpleStaticCalc::isValidTriangle(cv::Point& startPoint, cv::Point& endPoint, cv
 	return true;
 }
 
+int
+SimpleStaticCalc::medianFromVector(std::vector<int> values)
+{
+	int valueCount = values.size();
+	if (valueCount % 2 == 0)
+	{
+		return std::round(((double)(values[valueCount / 2] + values[valueCount / 2 - 1])) / 2.0);
+	}
+	else
+	{
+		return values[valueCount / 2];
+	}
+}
+
 cv::Point
 SimpleStaticCalc::calculatePointsFromEstimations(std::vector<int> estimationsX, std::vector<int> estimationsY)
 {
+	//return cv::Point(medianFromVector(estimationsX), medianFromVector(estimationsY));
 	int robotGuessX = 0;
 	int robotGuessY = 0;
 	int robotGuesses = estimationsX.size();
@@ -357,9 +372,8 @@ SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles(cv::Point& startPoint,
 	if (showInputsDebug)
 		std::cout << "SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles\t" << startPoint.x << ":" << startPoint.y << ":" << endPoint.x << ":" << endPoint.y << ":" << startPointAngle << ":" << endPointAngle << ":" << relativePositiveY << std::endl;
 
-	double angleTooSharp = 2.0;
 	double newPointAngle = 180 - endPointAngle - startPointAngle;
-	if (startPointAngle < angleTooSharp || endPointAngle < angleTooSharp || newPointAngle < angleTooSharp)
+	if (startPointAngle < SimpleStaticCalc::tuningAngleTooSharp || endPointAngle < SimpleStaticCalc::tuningAngleTooSharp || newPointAngle < SimpleStaticCalc::tuningAngleTooSharp)
 	{
 		std::cout << "!!!Error!!! Angle to Sharp!!!" << std::endl;
 
