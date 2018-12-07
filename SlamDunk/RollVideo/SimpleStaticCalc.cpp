@@ -39,26 +39,238 @@ SimpleStaticCalc::unitTestsHere()
 		return false;
 	}
 
-	cv::Point sevenTemp(400, 300);
-	cv::Point eightTemp(400, 100);
-	cv::Point robotOrigLocation1 = get3rdPointLocationFrom2PointsAndAngles(sevenTemp, eightTemp, 60, 60);
-	if (robotOrigLocation1.x != 400 - 173 || robotOrigLocation1.y != 200)
+	cv::Point startPoint, endPoint, thirdPointExpected, thirdPointResult;
+	double startPointAngle, endPointAngle;
+	bool aboveStartEndLine;
+	
+	//// Vertical slope Quadrant 4 relative result
+	//startPoint = cv::Point(400, 300);
+	//endPoint = cv::Point(400, 100);
+	//thirdPointExpected = cv::Point(400 - 173, 200);
+	//aboveStartEndLine = aboveSlopeOfMainLine(startPoint, endPoint, thirdPointExpected);
+	//thirdPointResult = get3rdPointLocationFrom2PointsAndAngles(startPoint, endPoint, 60, 60, true, aboveStartEndLine, false);
+	//if (thirdPointResult.x != thirdPointExpected.x || thirdPointResult.y != thirdPointExpected.y)
+	//{
+	//	std::cout << "5th:\t" << thirdPointResult.x << "\tand:\t" << thirdPointResult.y << std::endl;
+	//	return false;
+	//}
+
+	//// Reverse Vertical slope Quadrant 1 relative result
+	//startPoint = cv::Point(400, 100);
+	//endPoint = cv::Point(400, 300);
+	//thirdPointExpected = cv::Point(400 - 173, 200);
+	//aboveStartEndLine = aboveSlopeOfMainLine(startPoint, endPoint, thirdPointExpected);
+	//thirdPointResult = get3rdPointLocationFrom2PointsAndAngles(startPoint, endPoint, 60, 60, true, aboveStartEndLine, false);
+	//if (thirdPointResult.x != thirdPointExpected.x || thirdPointResult.y != thirdPointExpected.y)
+	//{
+	//	std::cout << "5.1th:\t" << thirdPointResult.x << "\tand:\t" << thirdPointResult.y << std::endl;
+	//	return false;
+	//}
+
+	//// Horizontal slope Quadrant 1 relative result
+	//startPoint = cv::Point(100, 100);
+	//endPoint = cv::Point(400, 100);
+	//thirdPointExpected = cv::Point(200, 200);
+	//aboveStartEndLine = aboveSlopeOfMainLine(startPoint, endPoint, thirdPointExpected);
+	//thirdPointResult = get3rdPointLocationFrom2PointsAndAngles(startPoint, endPoint, 60, 60, true, aboveStartEndLine, false);
+	//if (thirdPointResult.x != thirdPointExpected.x || thirdPointResult.y != thirdPointExpected.y)
+	//{
+	//	std::cout << "5.2th:\t" << thirdPointResult.x << "\tand:\t" << thirdPointResult.y << std::endl;
+	//	return false;
+	//}
+
+	//// Horizontal slope Quadrant 4 relative result
+	//startPoint = cv::Point(100, 100);
+	//endPoint = cv::Point(400, 100);
+	//thirdPointExpected = cv::Point(200, -200);
+	//aboveStartEndLine = aboveSlopeOfMainLine(startPoint, endPoint, thirdPointExpected);
+	//thirdPointResult = get3rdPointLocationFrom2PointsAndAngles(startPoint, endPoint, 60, 60, true, aboveStartEndLine, false);
+	//if (thirdPointResult.x != thirdPointExpected.x || thirdPointResult.y != thirdPointExpected.y)
+	//{
+	//	std::cout << "5.3th:\t" << thirdPointResult.x << "\tand:\t" << thirdPointResult.y << std::endl;
+	//	return false;
+	//}
+
+	//// Vertical slope Quadrant 1 relative result
+	//startPoint = cv::Point(400, 300);
+	//endPoint = cv::Point(400, 100);
+	//thirdPointExpected = cv::Point(400 + 173, 200);
+	//aboveStartEndLine = aboveSlopeOfMainLine(startPoint, endPoint, thirdPointExpected);
+	//thirdPointResult = get3rdPointLocationFrom2PointsAndAngles(startPoint, endPoint, 60, 60, true, aboveStartEndLine, false);
+	//if (thirdPointResult.x != 400 + 173 || thirdPointResult.y != 200)
+	//{
+	//	std::cout << "6th:\t" << thirdPointResult.x << "\tand:\t" << thirdPointResult.y << std::endl;
+	//	return false;
+	//}
+
+	// Negative slope Quadrant 4 relative result
+	startPoint = cv::Point(400, 400);
+	endPoint = cv::Point(800, 100);
+	thirdPointExpected = cv::Point(400, 100);
+	aboveStartEndLine = aboveSlopeOfMainLine(startPoint, endPoint, thirdPointExpected);
+	std::tie(startPointAngle, endPointAngle) = SimpleStaticCalc::calculateInitialAnglesTo3rdPoint(startPoint, endPoint, thirdPointExpected);
+	thirdPointResult = get3rdPointLocationFrom2PointsAndAngles(startPoint, endPoint, startPointAngle, endPointAngle, aboveStartEndLine);
+	if (thirdPointResult.x != thirdPointExpected.x || thirdPointResult.y != thirdPointExpected.y)
 	{
-		std::cout << "6th:\t" << robotOrigLocation1.x << "\tand:\t" << robotOrigLocation1.y << std::endl;
+		std::cout << "7th:\t" << thirdPointResult.x << "\tand:\t" << thirdPointResult.y << std::endl;
 		return false;
 	}
 
-	cv::Point fiveTemp(400, 400);
-	cv::Point sixTemp(800, 100);
-	cv::Point robotOrigLocation2 = get3rdPointLocationFrom2PointsAndAngles(fiveTemp, sixTemp, 90.0 - 36.87, 36.87);
-	if (robotOrigLocation2.x != 400 || robotOrigLocation2.y != 100)
+	// Negative slope Quadrant 1 relative result
+	startPoint = cv::Point(400, 400);
+	endPoint = cv::Point(800, 100);
+	thirdPointExpected = cv::Point(800, 400);
+	aboveStartEndLine = aboveSlopeOfMainLine(startPoint, endPoint, thirdPointExpected);
+	std::tie(startPointAngle, endPointAngle) = SimpleStaticCalc::calculateInitialAnglesTo3rdPoint(startPoint, endPoint, thirdPointExpected);
+	thirdPointResult = get3rdPointLocationFrom2PointsAndAngles(startPoint, endPoint, startPointAngle, endPointAngle, aboveStartEndLine);
+	if (thirdPointResult.x != thirdPointExpected.x || thirdPointResult.y != thirdPointExpected.y)
 	{
-		std::cout << "7th:\t" << robotOrigLocation2.x << "\tand:\t" << robotOrigLocation2.y << std::endl;
+		std::cout << "8th:\t" << thirdPointResult.x << "\tand:\t" << thirdPointResult.y << std::endl;
+		return false;
+	}
+
+	// Negative slope Quadrant 2 relative result
+	startPoint = cv::Point(400, 400);
+	endPoint = cv::Point(800, 100);
+	thirdPointExpected = cv::Point(0, 900);
+	aboveStartEndLine = aboveSlopeOfMainLine(startPoint, endPoint, thirdPointExpected);
+	std::tie(startPointAngle, endPointAngle) = SimpleStaticCalc::calculateInitialAnglesTo3rdPoint(startPoint, endPoint, thirdPointExpected);
+	thirdPointResult = get3rdPointLocationFrom2PointsAndAngles(startPoint, endPoint, startPointAngle, endPointAngle, aboveStartEndLine);
+	if (thirdPointResult.x != thirdPointExpected.x || thirdPointResult.y != thirdPointExpected.y)
+	{
+		std::cout << "9th:\t" << thirdPointResult.x << "\tand:\t" << thirdPointResult.y << std::endl;
+		return false;
+	}
+
+	// Negative slope Quadrant 3 relative result
+	startPoint = cv::Point(400, 400);
+	endPoint = cv::Point(800, 100);
+	thirdPointExpected = cv::Point(0, 500);
+	aboveStartEndLine = aboveSlopeOfMainLine(startPoint, endPoint, thirdPointExpected);
+	std::tie(startPointAngle, endPointAngle) = SimpleStaticCalc::calculateInitialAnglesTo3rdPoint(startPoint, endPoint, thirdPointExpected);
+	thirdPointResult = get3rdPointLocationFrom2PointsAndAngles(startPoint, endPoint, startPointAngle, endPointAngle, aboveStartEndLine);
+	if (thirdPointResult.x != thirdPointExpected.x || thirdPointResult.y != thirdPointExpected.y)
+	{
+		std::cout << "10th:\t" << thirdPointResult.x << "\tand:\t" << thirdPointResult.y << std::endl;
+		return false;
+	}
+
+	// Positive slope Quadrant 4 relative result
+	startPoint = cv::Point(400, 400);
+	endPoint = cv::Point(800, 800);
+	thirdPointExpected = cv::Point(800, 400);
+	aboveStartEndLine = aboveSlopeOfMainLine(startPoint, endPoint, thirdPointExpected);
+	std::tie(startPointAngle, endPointAngle) = SimpleStaticCalc::calculateInitialAnglesTo3rdPoint(startPoint, endPoint, thirdPointExpected);
+	thirdPointResult = get3rdPointLocationFrom2PointsAndAngles(startPoint, endPoint, startPointAngle, endPointAngle, aboveStartEndLine);
+	if (thirdPointResult.x != thirdPointExpected.x || thirdPointResult.y != thirdPointExpected.y)
+	{
+		std::cout << "11th:\t" << thirdPointResult.x << "\tand:\t" << thirdPointResult.y << std::endl;
+		return false;
+	}
+
+	// Positive slope Quadrant 1 relative result
+	startPoint = cv::Point(400, 400);
+	endPoint = cv::Point(800, 800);
+	thirdPointExpected = cv::Point(400, 800);
+	aboveStartEndLine = aboveSlopeOfMainLine(startPoint, endPoint, thirdPointExpected);
+	std::tie(startPointAngle, endPointAngle) = SimpleStaticCalc::calculateInitialAnglesTo3rdPoint(startPoint, endPoint, thirdPointExpected);
+	thirdPointResult = get3rdPointLocationFrom2PointsAndAngles(startPoint, endPoint, startPointAngle, endPointAngle, aboveStartEndLine);
+	if (thirdPointResult.x != thirdPointExpected.x || thirdPointResult.y != thirdPointExpected.y)
+	{
+		std::cout << "12th:\t" << thirdPointResult.x << "\tand:\t" << thirdPointResult.y << std::endl;
+		return false;
+	}
+
+	// Positive slope Quadrant 2 relative result
+	startPoint = cv::Point(400, 400);
+	endPoint = cv::Point(800, 800);
+	thirdPointExpected = cv::Point(-100, 100);
+	aboveStartEndLine = aboveSlopeOfMainLine(startPoint, endPoint, thirdPointExpected);
+	std::tie(startPointAngle, endPointAngle) = SimpleStaticCalc::calculateInitialAnglesTo3rdPoint(startPoint, endPoint, thirdPointExpected);
+	thirdPointResult = get3rdPointLocationFrom2PointsAndAngles(startPoint, endPoint, startPointAngle, endPointAngle, aboveStartEndLine);
+	if (thirdPointResult.x != thirdPointExpected.x || thirdPointResult.y != thirdPointExpected.y)
+	{
+		std::cout << "13th:\t" << thirdPointResult.x << "\tand:\t" << thirdPointResult.y << std::endl;
+		return false;
+	}
+
+	// Positive slope Quadrant 3 relative result
+	startPoint = cv::Point(400, 400);
+	endPoint = cv::Point(800, 800);
+	thirdPointExpected = cv::Point(-100, -1000);
+	aboveStartEndLine = aboveSlopeOfMainLine(startPoint, endPoint, thirdPointExpected);
+	std::tie(startPointAngle, endPointAngle) = SimpleStaticCalc::calculateInitialAnglesTo3rdPoint(startPoint, endPoint, thirdPointExpected);
+	thirdPointResult = get3rdPointLocationFrom2PointsAndAngles(startPoint, endPoint, startPointAngle, endPointAngle, aboveStartEndLine);
+	if (thirdPointResult.x != thirdPointExpected.x || thirdPointResult.y != thirdPointExpected.y)
+	{
+		std::cout << "14th:\t" << thirdPointResult.x << "\tand:\t" << thirdPointResult.y << std::endl;
+		return false;
+	}
+
+	// Start with Positive slope Q3 - End with Reverse Positive Slope Q3
+	// TODO understand this comparison
+	startPoint = cv::Point(400, 400);
+	endPoint = cv::Point(800, 800);
+	thirdPointExpected = cv::Point(-100, -1000);
+	aboveStartEndLine = aboveSlopeOfMainLine(startPoint, endPoint, thirdPointExpected);
+	std::tie(startPointAngle, endPointAngle) = SimpleStaticCalc::calculateInitialAnglesTo3rdPoint(startPoint, endPoint, thirdPointExpected);
+	//int quadrant = SimpleStaticCalc::thirdPointRelativeQuadrant(startPoint, endPoint, thirdPointExpected);
+	thirdPointResult = get3rdPointLocationFrom2PointsAndAngles(endPoint, startPoint, startPointAngle, endPointAngle, aboveStartEndLine);
+	if (thirdPointResult.x != 1300 || thirdPointResult.y != 2200)
+	{
+		std::cout << "15th:\t" << thirdPointResult.x << "\tand:\t" << thirdPointResult.y << std::endl;
+		return false;
+	}
+
+	// Start with Positive slope Q3 - End with Negative Slope Q3
+	// TODO understand this comparison
+	startPoint = cv::Point(400, 400);
+	endPoint = cv::Point(800, 800);
+	thirdPointExpected = cv::Point(-100, -1000);
+	aboveStartEndLine = aboveSlopeOfMainLine(startPoint, endPoint, thirdPointExpected);
+	std::tie(startPointAngle, endPointAngle) = SimpleStaticCalc::calculateInitialAnglesTo3rdPoint(startPoint, endPoint, thirdPointExpected);
+	//int quadrant = SimpleStaticCalc::thirdPointRelativeQuadrant(startPoint, endPoint, thirdPointExpected);
+	thirdPointResult = get3rdPointLocationFrom2PointsAndAngles(cv::Point(400, 1200), endPoint, startPointAngle, endPointAngle, aboveStartEndLine);
+	if (thirdPointResult.x != -1000 || thirdPointResult.y != 1700)
+	{
+		std::cout << "16th:\t" << thirdPointResult.x << "\tand:\t" << thirdPointResult.y << std::endl;
+		return false;
+	}
+
+	// Start with Positive slope Q3 - End with Reverse Negative Slope Q3
+	// TODO understand this comparison
+	startPoint = cv::Point(400, 400);
+	endPoint = cv::Point(800, 800);
+	thirdPointExpected = cv::Point(-100, -1000);
+	aboveStartEndLine = aboveSlopeOfMainLine(startPoint, endPoint, thirdPointExpected);
+	std::tie(startPointAngle, endPointAngle) = SimpleStaticCalc::calculateInitialAnglesTo3rdPoint(startPoint, endPoint, thirdPointExpected);
+	//int quadrant = SimpleStaticCalc::thirdPointRelativeQuadrant(startPoint, endPoint, thirdPointExpected);
+	thirdPointResult = get3rdPointLocationFrom2PointsAndAngles(endPoint, cv::Point(400, 1200), startPointAngle, endPointAngle, aboveStartEndLine);
+	if (thirdPointResult.x != 1300 || thirdPointResult.y != 2200)
+	{
+		std::cout << "17th:\t" << thirdPointResult.x << "\tand:\t" << thirdPointResult.y << std::endl;
 		return false;
 	}
 
 	std::cout << "SimpleStaticCalc Unit Tests Complete!" << std::endl;
 	return true;
+}
+
+bool
+SimpleStaticCalc::aboveSlopeOfMainLine(cv::Point& startPoint, cv::Point& endPoint, cv::Point& thirdPoint) {
+	if (endPoint.x == startPoint.x)
+	{
+		if (endPoint.y > startPoint.y)
+			return thirdPoint.x < startPoint.x;
+		else
+			return thirdPoint.x > startPoint.x;
+	}
+
+	double diffMainX = endPoint.x - startPoint.x;
+	double diffMainY = endPoint.y - startPoint.y;
+	double mainLineSlope = diffMainY / diffMainX;
+	int yIntercept = startPoint.y - (startPoint.x * mainLineSlope);
+	return thirdPoint.y > thirdPoint.x * mainLineSlope + yIntercept;
 }
 
 std::tuple<double, double>
@@ -126,11 +338,11 @@ SimpleStaticCalc::calculatePointsFromEstimations(std::vector<int> estimationsX, 
 }
 
 cv::Point
-SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles(cv::Point& startPoint, cv::Point& endPoint, double startPointAngle, double endPointAngle)
+SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles(cv::Point& startPoint, cv::Point& endPoint, double startPointAngle, double endPointAngle, bool relativePositiveY)
 {
 
 	if (showInputsDebug)
-		std::cout << "SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles\t" << startPoint.x << ":" << startPoint.y << ":" << endPoint.x << ":" << endPoint.y << ":" << startPointAngle << ":" << endPointAngle << std::endl;
+		std::cout << "SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles\t" << startPoint.x << ":" << startPoint.y << ":" << endPoint.x << ":" << endPoint.y << ":" << startPointAngle << ":" << endPointAngle << ":" << relativePositiveY << std::endl;
 
 	double angleToSharp = 0.5;
 	if (startPointAngle < angleToSharp || endPointAngle < angleToSharp)
@@ -152,27 +364,32 @@ SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles(cv::Point& startPoint,
 
 	double newPointAngle = 180 - endPointAngle - startPointAngle;
 
-	double leftLength = (mainLength / sin(newPointAngle * PI / 180)) * sin(endPointAngle * PI / 180);
-	double rightLength = (mainLength / sin(newPointAngle * PI / 180)) * sin(startPointAngle * PI / 180);
+	double startToNewLength = (mainLength / sin(newPointAngle * PI / 180)) * sin(endPointAngle * PI / 180);
+	double endToNewLength = (mainLength / sin(newPointAngle * PI / 180)) * sin(startPointAngle * PI / 180);
 
 	// this equation finds third point assuming mainLength is from (0,0) to (x,0) - (for most scenarios xCord is positive and yCord is negative)
-	double xCord = (pow(leftLength, 2) - pow(rightLength, 2) + pow(mainLength, 2)) / (mainLength * 2);
-	double yCord = -1 * pow(pow(leftLength, 2) - pow(xCord, 2), 0.5);
+	double xCord = (pow(startToNewLength, 2) - pow(endToNewLength, 2) + pow(mainLength, 2)) / (mainLength * 2);
+	double yCord = pow(pow(startToNewLength, 2) - pow(xCord, 2), 0.5);
+	if (!relativePositiveY)
+		yCord *= -1;
 
 	cv::Point shiftedEndPointZero(endPoint.x - startPoint.x, endPoint.y - startPoint.y);
 	double rotationalAngle = -1.0;
-	if (shiftedEndPointZero.x == 0 && shiftedEndPointZero.y > 0)
-		rotationalAngle = 90.0;
-	else if (shiftedEndPointZero.x == 0 && shiftedEndPointZero.y < 0)
+	if (shiftedEndPointZero.x == 0 || shiftedEndPointZero.y == 0)
+		std::invalid_argument("SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles::Not currently handling vertical or horizontal lines");
+	/*if (shiftedEndPointZero.x == 0 && shiftedEndPointZero.y > 0)
 		rotationalAngle = -90.0;
+	else if (shiftedEndPointZero.x == 0 && shiftedEndPointZero.y < 0)
+		rotationalAngle = 90.0;
 	else if (shiftedEndPointZero.y == 0 && shiftedEndPointZero.x > 0)
 		rotationalAngle = 0.0;
 	else if (shiftedEndPointZero.y == 0 && shiftedEndPointZero.x < 0)
-		rotationalAngle = 180.0;
+		rotationalAngle = 180.0;*/
 	else
 	{
 		rotationalAngle = acos((pow(shiftedEndPointZero.x, 2) + pow(mainLength, 2) - pow(shiftedEndPointZero.y, 2)) / (2 * shiftedEndPointZero.x * mainLength)) * 180 / PI;
-		if (shiftedEndPointZero.y < 0)
+		// TODO Test this more thoroughly
+		if (!(shiftedEndPointZero.x > 0 && shiftedEndPointZero.y > 0))
 			rotationalAngle *= -1;
 	}
 

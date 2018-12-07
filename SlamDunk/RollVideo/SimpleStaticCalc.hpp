@@ -9,10 +9,12 @@ class SimpleStaticCalc
 	public:
 		static double twoPointDistance(cv::Point& first, cv::Point& second);
 		static bool twoPointsClose(cv::Point& first, cv::Point& second);
-		static cv::Point get3rdPointLocationFrom2PointsAndAngles(cv::Point& startPoint, cv::Point& endPoint, double startPointAngle, double endPointAngle);
+		static cv::Point get3rdPointLocationFrom2PointsAndAngles(cv::Point& startPoint, cv::Point& endPoint, double startPointAngle, double endPointAngle, bool relativePositiveY);
 		static std::tuple<double, double> calculateInitialAnglesTo3rdPoint(cv::Point& startPoint, cv::Point& endPoint, cv::Point& thirdPoint);
 		static bool isValidTriangle(cv::Point& startPoint, cv::Point& endPoint, cv::Point& thirdPoint);
 		static cv::Point calculatePointsFromEstimations(std::vector<int> estimationsX, std::vector<int> estimationsY);
+
+		static bool aboveSlopeOfMainLine(cv::Point& startPoint, cv::Point& endPoint, cv::Point& thirdPoint);
 
 		static bool unitTestsHere();
 
@@ -31,7 +33,7 @@ class SimpleStaticCalc
 		const static int ROBOT_POS_X = DEPTH_WIDTH / 2;
 		const static int ROBOT_POS_Y = 0;
 
-		const static bool showInputsDebug = true;
+		const static bool showInputsDebug = false;
 
 
 	private:

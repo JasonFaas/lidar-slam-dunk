@@ -221,24 +221,14 @@ SlamHelper::linkExistingToNewFeatures(cv::Mat& depthImageRO)
 		std::vector<int> newFeatureFrameOneEndIdeasY = {};
 		std::tie(newStartPoint, newEndPoint) = newFeature.getRecentPoints();
 
-		if (newFeature.getFeatureName() == "010") {
-			std::cout << "Start:\t" << newStartPoint.x << ":" << newStartPoint.y << "\t" << newEndPoint.x << ":" << newEndPoint.y << std::endl;
-		}
-
 		for (DepthFeature& existingCurrentFeature : existingFeaturesInCurrent)
 		{
 			try {
-				if (newFeature.getFeatureName() != "010")
-					continue;
 				std::tie(newF1StartPoint, newF1EndPoint) = featureFrameOneGuess(newStartPoint, newEndPoint, existingCurrentFeature);
 				newFeatureFrameOneStartIdeasX.push_back(newF1StartPoint.x);
 				newFeatureFrameOneStartIdeasY.push_back(newF1StartPoint.y);
 				newFeatureFrameOneEndIdeasX.push_back(newF1EndPoint.x);
 				newFeatureFrameOneEndIdeasY.push_back(newF1EndPoint.y);
-
-				if (newFeature.getFeatureName() == "010") {
-					std::cout << "\t" << existingCurrentFeature.getFeatureName() << ":Guess:\t" << newF1StartPoint.x << ":" << newF1StartPoint.y << "\t" << newF1EndPoint.x << ":" << newF1EndPoint.y << std::endl;
-				}
 			}
 			catch (std::invalid_argument e) {
 				std::cout << "Invalid argument thrown attempting to guess at new feature Frame 1 point" << std::endl;
@@ -271,8 +261,7 @@ SlamHelper::drawLotsOfFeaturesV1(cv::Mat& overheadCopy, cv::Mat& depthCopy)
 {
 	// Get new robot position
 	drawNewRobotLocation();
-
-
+	
 	Concurrency::parallel_for_each(existingFeatures.begin(), existingFeatures.end(), [&](DepthFeature & df) {
 
 		try {
@@ -317,12 +306,14 @@ SlamHelper::featureFrameOneGuess(cv::Point& newStartPoint, cv::Point& newEndPoin
 	std::tie(recentF1StartPoint, recentF1EndPoint) = existingCurrentFeature.getFrameOnePoints();
 
 	// newStartPoint Info
-	std::tie(ideaStartAngle, ideaEndAngle) = SimpleStaticCalc::calculateInitialAnglesTo3rdPoint(recentStartPoint, recentEndPoint, newStartPoint);	
-	newF1StartPoint = SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles(recentF1StartPoint, recentF1EndPoint, ideaStartAngle, ideaEndAngle);
+	bool aboveStartEndLine = SimpleStaticCalc::aboveSlopeOfMainLine(recentStartPoint, recentEndPoint, newStartPoint);
+	std::tie(ideaStartAngle, ideaEndAngle) = SimpleStaticCalc::calculateInitialAnglesTo3rdPoint(recentStartPoint, recentEndPoint, newStartPoint);
+	newF1StartPoint = SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles(recentF1StartPoint, recentF1EndPoint, ideaStartAngle, ideaEndAngle, aboveStartEndLine);
 
 	// newEndPoint Info
+	aboveStartEndLine = SimpleStaticCalc::aboveSlopeOfMainLine(recentStartPoint, recentEndPoint, newEndPoint);
 	std::tie(ideaStartAngle, ideaEndAngle) = SimpleStaticCalc::calculateInitialAnglesTo3rdPoint(recentStartPoint, recentEndPoint, newEndPoint);
-	newF1EndPoint = SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles(recentF1StartPoint, recentF1EndPoint, ideaStartAngle, ideaEndAngle);
+	newF1EndPoint = SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles(recentF1StartPoint, recentF1EndPoint, ideaStartAngle, ideaEndAngle, aboveStartEndLine);
 
 	return std::make_tuple(newF1StartPoint, newF1EndPoint);
 }

@@ -98,8 +98,14 @@ DepthFeature::getNewRobotLocation()
 	FeatureFrameInfo recentInfo = featureFrames.back();
 	double startPointAngle, endPointAngle;
 	std::tie(startPointAngle, endPointAngle) = recentInfo.getAngles();
-	
-	cv::Point newRobotLocationPoint = SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles(startPointFrameOne, endPointFrameOne, startPointAngle, endPointAngle);
+
+	cv::Point newRobotLocationPoint = SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles(
+		startPointFrameOne,
+		endPointFrameOne,
+		startPointAngle,
+		endPointAngle,
+		false
+	);
 
 	return newRobotLocationPoint;
 }
