@@ -21,10 +21,13 @@ FeatureFrameInfo::FeatureFrameInfo(int currFrame, cv::Point& start, cv::Point& e
 }
 
 
-
+// TODO rename this linking feature
 bool
 FeatureFrameInfo::isFeatureOnEdge()
 {
+	if (abs(startPoint.x - endPoint.x) < SimpleStaticCalc::tuningValidFeatureLengthMin)
+		return true;
+
 	int nearEdgeMax = 10;
 	std::vector<int> verifyPoints = { startPoint.x, endPoint.x };
 	for (int point : verifyPoints)
@@ -72,7 +75,7 @@ FeatureFrameInfo::unitTestsHere()
 {
 
 	cv::Point firstTemp(10, 10);
-	cv::Point secondTemp(15, 15);
+	cv::Point secondTemp(40, 40);
 	cv::Point leftEdgeTemp(4, 25);
 	cv::Point rightEdgeTemp(SimpleStaticCalc::DEPTH_WIDTH - 3, 25);
 

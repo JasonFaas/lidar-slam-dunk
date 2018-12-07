@@ -19,7 +19,7 @@ bool
 SimpleStaticCalc::twoPointsClose(cv::Point& first, cv::Point& second)
 {
 	double distance = twoPointDistance(first, second);
-	return distance < 20;
+	return distance < 25;
 }
 
 bool
@@ -27,7 +27,7 @@ SimpleStaticCalc::unitTestsHere()
 {
 	cv::Point firstTemp(10, 10);
 	cv::Point secondTemp(15, 15);
-	cv::Point thirdTemp(25, 25);
+	cv::Point thirdTemp(50, 50);
 	if (!SimpleStaticCalc::twoPointsClose(firstTemp, secondTemp))
 	{
 		std::cout << "1st" << std::endl;
@@ -244,13 +244,26 @@ SimpleStaticCalc::unitTestsHere()
 	thirdPointExpected = cv::Point(-100, -1000);
 	aboveStartEndLine = aboveSlopeOfMainLine(startPoint, endPoint, thirdPointExpected);
 	std::tie(startPointAngle, endPointAngle) = SimpleStaticCalc::calculateInitialAnglesTo3rdPoint(startPoint, endPoint, thirdPointExpected);
-	//int quadrant = SimpleStaticCalc::thirdPointRelativeQuadrant(startPoint, endPoint, thirdPointExpected);
 	thirdPointResult = get3rdPointLocationFrom2PointsAndAngles(endPoint, cv::Point(400, 1200), startPointAngle, endPointAngle, aboveStartEndLine);
 	if (thirdPointResult.x != 1300 || thirdPointResult.y != 2200)
 	{
 		std::cout << "17th:\t" << thirdPointResult.x << "\tand:\t" << thirdPointResult.y << std::endl;
 		return false;
 	}
+
+	// Not sure what I'm testing, only that I know current result is wrong
+	// TODO understand
+	//startPoint = cv::Point(285, 187);
+	//endPoint = cv::Point(315, 188);
+	//thirdPointExpected = cv::Point(0, 97);
+	//aboveStartEndLine = aboveSlopeOfMainLine(startPoint, endPoint, thirdPointExpected);
+	//std::tie(startPointAngle, endPointAngle) = SimpleStaticCalc::calculateInitialAnglesTo3rdPoint(startPoint, endPoint, thirdPointExpected);
+	//thirdPointResult = get3rdPointLocationFrom2PointsAndAngles(cv::Point(285, 189), cv::Point(300, 197), startPointAngle, endPointAngle, aboveStartEndLine);
+	//if (thirdPointResult.x != thirdPointExpected.x || thirdPointResult.y != thirdPointExpected.y)
+	//{
+	//	std::cout << "18th:\t" << thirdPointResult.x << "\tand:\t" << thirdPointResult.y << std::endl;
+	//	return false;
+	//}
 
 	std::cout << "SimpleStaticCalc Unit Tests Complete!" << std::endl;
 	return true;
@@ -269,7 +282,7 @@ SimpleStaticCalc::aboveSlopeOfMainLine(cv::Point& startPoint, cv::Point& endPoin
 	double diffMainX = endPoint.x - startPoint.x;
 	double diffMainY = endPoint.y - startPoint.y;
 	double mainLineSlope = diffMainY / diffMainX;
-	int yIntercept = startPoint.y - (startPoint.x * mainLineSlope);
+	double yIntercept = startPoint.y - (startPoint.x * mainLineSlope);
 	return thirdPoint.y > thirdPoint.x * mainLineSlope + yIntercept;
 }
 
@@ -344,10 +357,11 @@ SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles(cv::Point& startPoint,
 	if (showInputsDebug)
 		std::cout << "SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles\t" << startPoint.x << ":" << startPoint.y << ":" << endPoint.x << ":" << endPoint.y << ":" << startPointAngle << ":" << endPointAngle << ":" << relativePositiveY << std::endl;
 
-	double angleToSharp = 179.8;
-	if (startPointAngle > angleToSharp || endPointAngle > angleToSharp)
+	double angleTooSharp = 2.0;
+	double newPointAngle = 180 - endPointAngle - startPointAngle;
+	if (startPointAngle < angleTooSharp || endPointAngle < angleTooSharp || newPointAngle < angleTooSharp)
 	{
-		std::cout << "!!!Error!!! Point from standard!!!" << std::endl;
+		std::cout << "!!!Error!!! Angle to Sharp!!!" << std::endl;
 
 
 		std::cout << "\tStart x:\t" << std::to_string(startPoint.x) << std::endl;
@@ -362,7 +376,6 @@ SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles(cv::Point& startPoint,
 
 	double mainLength = twoPointDistance(endPoint, startPoint);
 
-	double newPointAngle = 180 - endPointAngle - startPointAngle;
 
 	double startToNewLength = (mainLength / sin(newPointAngle * PI / 180)) * sin(endPointAngle * PI / 180);
 	double endToNewLength = (mainLength / sin(newPointAngle * PI / 180)) * sin(startPointAngle * PI / 180);

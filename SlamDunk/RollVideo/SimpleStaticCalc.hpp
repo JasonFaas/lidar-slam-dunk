@@ -35,6 +35,11 @@ class SimpleStaticCalc
 
 		const static bool showInputsDebug = false;
 
+		const static int tuningFeatureLengthMin = 12;
+		const static int tuningValidFeatureLengthMin = 25;
+		const static int tuningfeatureLookAheadMax = 5;
+		const static int tuningdepthRangeAllowable = 5;
+
 
 	private:
 		

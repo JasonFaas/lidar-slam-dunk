@@ -147,9 +147,9 @@ SlamHelper::linkExistingToNewFeatures(cv::Mat& depthImageRO)
 	std::vector<DepthFeature> newFeatures = {};
 	std::vector<DepthFeature> existingFeaturesInCurrent = {};
 
-	const int featureLookAheadMax = 3;
-	const int depthRangeAllowable = 6;
-	const int minPointsInLine = 15;
+	const int featureLookAheadMax = SimpleStaticCalc::tuningfeatureLookAheadMax;
+	const int depthRangeAllowable = SimpleStaticCalc::tuningdepthRangeAllowable;
+	const int minPointsInLine = SimpleStaticCalc::tuningFeatureLengthMin;
 
 	int currentStartX = 0;
 	int currentStartDepth = depthImageRO.at<uchar>(rowOfInterest, currentStartX);

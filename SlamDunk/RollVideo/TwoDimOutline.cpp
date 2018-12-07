@@ -30,15 +30,16 @@ int main()
 		return -1;
 
 
-	//cv::VideoCapture capture(DEV_DIRECTORY + "Depth_2018_11_26_10_46_04.mp4");
+	cv::VideoCapture capture(DEV_DIRECTORY + "Depth_2018_11_26_10_46_04.mp4");
 	//cv::VideoCapture capture(DEV_DIRECTORY + "Depth_2018_12_05_12_57_08.mp4");
-	cv::VideoCapture capture(DEV_DIRECTORY + "Depth_2018_12_05_13_03_41.mp4");
+	//cv::VideoCapture capture(DEV_DIRECTORY + "Depth_2018_12_05_13_03_41.mp4");
 	cv::Mat frame, bwFrame;
 
 	const std::string depthWindowName = "DepthVideo";
 
 	SlamHelper* slamHelper = new SlamHelper();
 
+	int frameTracker = 0;
 	cv::namedWindow(depthWindowName);
 	while (TRUE)
 	{
@@ -64,10 +65,11 @@ int main()
 
 		cv::Mat startAndEndPoints = slamHelper->linesOnCommonFeatures(depthBlurred, depthTo2d);
 		
-
-		char waitKey = cv::waitKey(0);
-		if (waitKey == QUIT_KEY)
-			break;
+		if (frameTracker++ > 50) {
+			char waitKey = cv::waitKey(0);
+			if (waitKey == QUIT_KEY)
+				break;
+		}
 	}
 
 
