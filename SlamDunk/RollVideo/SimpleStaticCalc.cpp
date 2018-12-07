@@ -344,8 +344,8 @@ SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles(cv::Point& startPoint,
 	if (showInputsDebug)
 		std::cout << "SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles\t" << startPoint.x << ":" << startPoint.y << ":" << endPoint.x << ":" << endPoint.y << ":" << startPointAngle << ":" << endPointAngle << ":" << relativePositiveY << std::endl;
 
-	double angleToSharp = 0.5;
-	if (startPointAngle < angleToSharp || endPointAngle < angleToSharp)
+	double angleToSharp = 179.8;
+	if (startPointAngle > angleToSharp || endPointAngle > angleToSharp)
 	{
 		std::cout << "!!!Error!!! Point from standard!!!" << std::endl;
 
