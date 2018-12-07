@@ -96,18 +96,37 @@ SlamHelper::depthTo2D(cv::Mat& depthImage)
 	return returnImg;
 }
 
+//cv::Mat
+//SlamHelper::depthTo2DimAdjustedv1(cv::Mat& depthImage)
+//{
+//	cv::Mat returnImg = cv::Mat(255, depthImage.cols, CV_8UC1, cv::Scalar(0));
+//
+//	int rowOfInterest = depthImage.rows / 2;
+//	Concurrency::parallel_for(0, depthImage.cols, 1, [&](int n) {
+//		double depthAtROI = depthImage.at<uchar>(rowOfInterest, n);
+//		double angleToCos = abs(90.0 - 55.0 - ((double)n) / 7.252);
+//		double valueToSet = depthAtROI * cos(angleToCos * PI / 180.0);
+//		//std::cout << "what:\t" << (int)depthAtROI << "\tmorewhat:\t" << (int)angleToCos << "\tmorewhat:\t" << (int)valueToSet << std::endl;
+//		returnImg.at<uchar>((int)std::round(valueToSet), n) = 255;
+//	});
+//
+//	return returnImg;
+//}
+
 cv::Mat
-SlamHelper::depthTo2DimAdjusted(cv::Mat& depthImage)
+SlamHelper::depthTo2DimAdjusted(cv::Mat& depthImage) //v2 to fov
 {
 	cv::Mat returnImg = cv::Mat(255, depthImage.cols, CV_8UC1, cv::Scalar(0));
 
 	int rowOfInterest = depthImage.rows / 2;
 	Concurrency::parallel_for(0, depthImage.cols, 1, [&](int n) {
 		double depthAtROI = depthImage.at<uchar>(rowOfInterest, n);
-		double angleToCos = abs(90.0 - 55.0 - ((double)n) / 7.252);
-		double valueToSet = depthAtROI * cos(angleToCos * PI / 180.0);
+		double valueToSet = depthAtROI;
 		//std::cout << "what:\t" << (int)depthAtROI << "\tmorewhat:\t" << (int)angleToCos << "\tmorewhat:\t" << (int)valueToSet << std::endl;
-		returnImg.at<uchar>((int)std::round(valueToSet), n) = 255;
+		//returnImg.at<uchar>(255 - (int)std::round(valueToSet), n) = 255;
+		float fx = 365.456f / 1.8;
+		//float fx = 150.456f;
+		returnImg.at<uchar>((int)std::round(valueToSet), 50+(int)std::round(((double)n)*valueToSet/fx)) = 255;
 	});
 
 	return returnImg;

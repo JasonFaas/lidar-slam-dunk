@@ -30,9 +30,9 @@ int main()
 		return -1;
 
 
-	//cv::VideoCapture capture(DEV_DIRECTORY + "Depth_2018_11_26_10_46_04.mp4");
+	cv::VideoCapture capture(DEV_DIRECTORY + "Depth_2018_11_26_10_46_04.mp4");
 	//cv::VideoCapture capture(DEV_DIRECTORY + "Depth_2018_12_05_12_57_08.mp4");
-	cv::VideoCapture capture(DEV_DIRECTORY + "Depth_2018_12_05_13_03_41.mp4");
+	//cv::VideoCapture capture(DEV_DIRECTORY + "Depth_2018_12_05_13_03_41.mp4");
 	cv::Mat frame, bwFrame;
 
 	const std::string depthWindowName = "DepthVideo";
