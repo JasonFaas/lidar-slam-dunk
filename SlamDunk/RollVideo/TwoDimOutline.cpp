@@ -66,11 +66,14 @@ int main()
 		//std::vector<int> depthTo2dVector = slamHelper->depthToVectorAdjusted(depthBlurred);
 
 		cv::Mat startAndEndPoints = slamHelper->linesOnCommonFeatures(depthBlurred, depthTo2d);
+
 		
 		if (frameTracker++ > SimpleStaticCalc::frameJumpAhead) {
 			char waitKey = cv::waitKey(0);
-			if (waitKey == QUIT_KEY)
+			if (waitKey == QUIT_KEY) {
+				slamHelper->closeVideoWriter();
 				break;
+			}
 		}
 	}
 

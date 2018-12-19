@@ -14,6 +14,7 @@
 #include <opencv2/opencv.hpp>
 
 #include <ppl.h>
+#include "StaticImageLogging.hpp"
 
 using namespace cv;
 
@@ -38,13 +39,9 @@ const char RECORD_END_KEY = 't';
 bool isRecording = FALSE;
 VideoWriter colorVideoWriter;
 VideoWriter depthVideoWriter;
-const std::string DEV_DIRECTORY = "C:/Users/jason/Desktop/Code/lidar-slam-dunk/local_resources/";
 
 void printStartupInfo();
-void grabScreenshot(cv::Mat colorScreen, std::string type);
 void deptyByteArrToMat(UINT16* pixelData, cv::Mat depthMat);
-void getDateTime(char* buffer);
-std::string recordingFileName(std::string type);
 
 int main()
 {
@@ -137,20 +134,20 @@ int main()
 					break;
 				else if (waitKey == SCREENSHOT_KEY)
 				{
-					grabScreenshot(colorSmallMat, "Color");
-					grabScreenshot(depthBufferMat, "Depth");
+					StaticImageLogging::grabScreenshot(colorSmallMat, "Color");
+					StaticImageLogging::grabScreenshot(depthBufferMat, "Depth");
 				}
 				else if (!isRecording && waitKey == RECORD_START_KEY && MAX_WARMUP_FRAMES - warmup_frames > 10)
 				{
 					colorVideoWriter = VideoWriter(
-						recordingFileName("Color"),
+						StaticImageLogging::recordingFileName("Color"),
 						CV_FOURCC('X', '2', '6', '4'),
 						5.0,
 						Size(COLOR_WIDTH / 2, COLOR_HEIGHT / 2),
 						true
 					);
 					depthVideoWriter = VideoWriter(
-						recordingFileName("Depth"),
+						StaticImageLogging::recordingFileName("Depth"),
 						CV_FOURCC('X', '2', '6', '4'),
 						5.0,
 						Size(DEPTH_WIDTH, DEPTH_HEIGHT),
@@ -208,44 +205,6 @@ void printStartupInfo()
 	std::cout << "\tRecord Start: " << RECORD_START_KEY << std::endl;
 	std::cout << "\tRecord End: " << RECORD_END_KEY << std::endl;
 	std::cout << "\n" << std::endl;
-}
-
-std::string recordingFileName(std::string type)
-{
-	char buffer[80];
-	getDateTime(buffer);
-
-	std::string filename = DEV_DIRECTORY;
-	filename.append(type);
-	filename.append("_");
-	filename.append(buffer);
-	filename.append(".mp4");
-
-	return filename;
-}
-
-void grabScreenshot(cv::Mat screen, std::string type)
-{
-	char buffer[80];
-	getDateTime(buffer);
-
-	std::string filename = DEV_DIRECTORY;
-	filename.append(type);
-	filename.append("_");
-	filename.append(buffer);
-	filename.append(".jpg");
-
-	imwrite(filename, screen);
-}
-
-void getDateTime(char* buffer)
-{
-	time_t rawtime;
-	struct tm * timeinfo;
-	//char buffer[80];
-	time(&rawtime);
-	timeinfo = localtime(&rawtime);
-	strftime(buffer, 80, "%Y_%m_%d_%H_%M_%S", timeinfo);
 }
 
 void deptyByteArrToMat(UINT16* pixelData, cv::Mat depthMat)

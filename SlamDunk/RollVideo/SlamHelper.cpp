@@ -8,9 +8,17 @@
 #include "DepthFeature.hpp"
 #include <numeric>
 #include "SimpleStaticCalc.hpp"
+#include "../HelloOpenCV/StaticImageLogging.hpp"
 
 SlamHelper::SlamHelper()
 {
+	//totalRepVideoWriter = cv::VideoWriter(
+	//	StaticImageLogging::recordingFileName("SlamResult/TotalRep"),
+	//	CV_FOURCC('X', '2', '6', '4'),
+	//	5.0,
+	//	TOTAL_REP_SIZE,
+	//	true
+	//);
 }
 
 cv::Mat
@@ -126,7 +134,7 @@ SlamHelper::depthTo2DimAdjusted(cv::Mat& depthImage) //v2 to fov
 		//returnImg.at<uchar>(255 - (int)std::round(valueToSet), n) = 255;
 		float fx = 365.456f / 1.8;
 		//float fx = 150.456f;
-		returnImg.at<uchar>((int)std::round(valueToSet), 50+(int)std::round(((double)n)*(valueToSet)/fx)) = 255;
+		returnImg.at<uchar>((int)std::round(valueToSet), (int)std::round(((double)n)*(valueToSet)/fx)) = 255;
 		//returnImg.at<uchar>((int)std::round(valueToSet), 50+(int)std::round(((double)n)*(valueToSet+255/1.8)/fx)) = 255;
 	});
 
@@ -157,6 +165,10 @@ SlamHelper::linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage)
 	imshow("Depth Extra", depthCopy);
 	cv::namedWindow("Full Representation");
 	imshow("Full Representation", totalRep);
+
+	StaticImageLogging::grabScreenshot(totalRep, "SlamResult/TotalRep_" + std::to_string(frameTracker) + "--");
+	//totalRepVideoWriter.write(totalRep);
+
 
 	return depthCopy;
 }
@@ -387,5 +399,45 @@ SlamHelper::drawNewRobotLocation()
 		cv::Scalar newScalar(rgb.data[0], rgb.data[1], rgb.data[2]);
 
 		cv::circle(totalRep, robotEstimation, 4, newScalar, -1);
+
+		robotHistory.push_back(robotEstimation);
+
+		// Draw lines between robot locations averaged every 5 points
+		if (robotHistory.size() % 5 == 0 && robotHistory.size() >= 10) {
+			cv::Point startPoint = getRobotEstimate(-5*2, -5);
+			cv::Point endPoint = getRobotEstimate(-5, 0);
+			cv::line(totalRep, startPoint, endPoint, cv::Scalar(255, 255, 255), 6);
+		}
+		
 	}
+}
+
+cv::Point 
+SlamHelper::getRobotEstimate(int startPoint, int endPoint)
+{
+	std::vector<cv::Point> robotRecentHistor(robotHistory.begin() + robotHistory.size() + startPoint, robotHistory.begin() + robotHistory.size() + endPoint);
+
+	std::vector<int> previousRobotGuessX = {};
+	std::vector<int> previousRobotGuessY = {};
+	std::mutex values_mutex;
+	Concurrency::parallel_for_each(robotRecentHistor.begin(), robotRecentHistor.end(), [&](cv::Point & robotLocationNew) {
+		try {
+			values_mutex.lock();
+			previousRobotGuessX.push_back(robotLocationNew.x);
+			previousRobotGuessY.push_back(robotLocationNew.y);
+			values_mutex.unlock();
+		}
+		catch (std::invalid_argument e) {
+			std::cout << "error getting new robot position:\t" << e.what() << std::endl;
+		}
+	});
+
+	cv::Point robotEstimate = SimpleStaticCalc::calculatePointsFromEstimations(previousRobotGuessX, previousRobotGuessY);
+	return robotEstimate;
+}
+
+void
+SlamHelper::closeVideoWriter()
+{
+	totalRepVideoWriter.release();
 }

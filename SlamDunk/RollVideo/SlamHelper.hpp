@@ -17,14 +17,18 @@ class SlamHelper
 		//std::vector<int> depthToVectorAdjusted(cv::Mat& depthImage);
 		cv::Mat linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage);
 
+		void closeVideoWriter(); // TODO Place this in deconstructor
+
 	private:
 		std::vector<DepthFeature> existingFeatures = {};
+		std::vector<cv::Point> robotHistory = {};
 		void linkExistingToNewFeatures(cv::Mat& depthImageRO);
 		void drawLotsOfFeaturesV1(cv::Mat& overheadCopy, cv::Mat& depthCopy);
 		std::tuple<cv::Point, cv::Point> featureFrameOneGuess(cv::Point& newStartPoint, cv::Point& newEndPoint, DepthFeature& existingCurrentFeature);
 		void drawNewRobotLocation();
 
-		cv::Mat totalRep = cv::Mat(cv::Size(1600, 800), CV_8UC3, cv::Scalar(0, 0, 0));
+		const cv::Size TOTAL_REP_SIZE = cv::Size(1600, 800);
+		cv::Mat totalRep = cv::Mat(TOTAL_REP_SIZE, CV_8UC3, cv::Scalar(0, 0, 0));
 
 		int featureNameIterator = 1;
 		int frameTracker = 0;
@@ -38,4 +42,8 @@ class SlamHelper
 		const static int rowOfInterest = SimpleStaticCalc::DEPTH_HEIGHT / 2;
 
 		void whichExistingFeaturesDoNotHaveFrameOnePoints();
+
+		cv::Point getRobotEstimate(int historySize, int offset);
+
+		cv::VideoWriter totalRepVideoWriter;
 };

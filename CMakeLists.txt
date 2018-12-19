@@ -21,8 +21,8 @@ include_directories(SlamDunk "${OpenCV_Main}/build/install/include")
 include_directories(SlamDunk "${OpenCL_Main}/include")
 include_directories(SlamDunk "${Kinect_Main}/inc")
 
-add_executable(SlamDunk SlamDunk/RollVideo/TwoDimOutline.cpp SlamDunk/RollVideo/SlamHelper.cpp SlamDunk/RollVideo/DepthFeature.cpp SlamDunk/RollVideo/FeatureFrameInfo.cpp SlamDunk/RollVideo/SimpleStaticCalc.cpp)
-#add_executable(SlamDunk SlamDunk/HelloOpenCV/DepthAndColorCameras.cpp)
+add_executable(SlamDunk SlamDunk/RollVideo/TwoDimOutline.cpp SlamDunk/RollVideo/SlamHelper.cpp SlamDunk/RollVideo/DepthFeature.cpp SlamDunk/RollVideo/FeatureFrameInfo.cpp SlamDunk/RollVideo/SimpleStaticCalc.cpp SlamDunk/HelloOpenCV/StaticImageLogging.cpp)
+#add_executable(SlamDunk SlamDunk/HelloOpenCV/DepthAndColorCameras.cpp SlamDunk/HelloOpenCV/StaticImageLogging.cpp)
 
 target_link_libraries (SlamDunk "${OpenCV_DIR}/opencv_calib3d343.lib" "${OpenCV_DIR}/opencv_core343.lib" "${OpenCV_DIR}/opencv_dnn343.lib" "${OpenCV_DIR}/opencv_features2d343.lib" "${OpenCV_DIR}/opencv_flann343.lib" "${OpenCV_DIR}/opencv_highgui343.lib" "${OpenCV_DIR}/opencv_imgcodecs343.lib" "${OpenCV_DIR}/opencv_imgproc343.lib" "${OpenCV_DIR}/opencv_ml343.lib" "${OpenCV_DIR}/opencv_objdetect343.lib" "${OpenCV_DIR}/opencv_photo343.lib" "${OpenCV_DIR}/opencv_shape343.lib" "${OpenCV_DIR}/opencv_stitching343.lib" "${OpenCV_DIR}/opencv_superres343.lib" "${OpenCV_DIR}/opencv_video343.lib" "${OpenCV_DIR}/opencv_videoio343.lib" "${OpenCV_DIR}/opencv_videostab343.lib")
 target_link_libraries (SlamDunk "${OpenCL_DIR}/OpenCL.lib")
