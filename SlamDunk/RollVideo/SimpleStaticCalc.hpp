@@ -40,10 +40,8 @@ class SimpleStaticCalc
 		const static int tuningValidFeatureLengthMin = 15;
 		const static int tuningfeatureLookAheadMax = 3;
 		const static int tuningdepthRangeAllowable = 5;
-		const static int frameJumpAhead = 5;
+		const static int frameJumpAhead = 50;
 		static constexpr double tuningAngleTooSharp = 2.0;
-
-
 
 	private:
 		

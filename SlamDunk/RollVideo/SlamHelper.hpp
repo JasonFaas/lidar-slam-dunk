@@ -27,7 +27,7 @@ class SlamHelper
 		std::tuple<cv::Point, cv::Point> featureFrameOneGuess(cv::Point& newStartPoint, cv::Point& newEndPoint, DepthFeature& existingCurrentFeature);
 		void drawNewRobotLocation();
 
-		const cv::Size TOTAL_REP_SIZE = cv::Size(1600, 800);
+		const cv::Size TOTAL_REP_SIZE = cv::Size(1920 / 2 + 200, 1080 / 2);
 		cv::Mat totalRep = cv::Mat(TOTAL_REP_SIZE, CV_8UC3, cv::Scalar(0, 0, 0));
 
 		int featureNameIterator = 1;
@@ -37,8 +37,8 @@ class SlamHelper
 		const int dilation_size = 20;
 		const int max_dilation_iterations = 20;
 
-		const int TOTAL_X_OFFSET = 400;
-		const int TOTAL_Y_OFFSET = 400;
+		const int TOTAL_X_OFFSET = 75;
+		const int TOTAL_Y_OFFSET = 100;
 		const static int rowOfInterest = SimpleStaticCalc::DEPTH_HEIGHT / 2;
 
 		void whichExistingFeaturesDoNotHaveFrameOnePoints();

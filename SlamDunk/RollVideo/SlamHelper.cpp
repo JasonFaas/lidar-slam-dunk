@@ -166,6 +166,24 @@ SlamHelper::linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage)
 	cv::namedWindow("Full Representation");
 	imshow("Full Representation", totalRep);
 
+//	depthImage.copyTo(totalRep(cv::Rect(totalRep.cols - depthImage.cols, totalRep.rows - depthImage.rows, depthImage.cols, depthImage.rows)));
+	//cv::Rect what = cv::Rect(0, 0, depthImage.cols, depthImage.rows);
+	cv::Rect what = cv::Rect(totalRep.cols - depthImage.cols - 10, (totalRep.rows - depthImage.rows) / 2, depthImage.cols, depthImage.rows);
+	std::vector<cv::Mat> channels(3);
+	cv::split(totalRep, channels);
+	cv::Mat ch1, ch2, ch3;
+	ch1 = channels[0];
+	ch2 = channels[1];
+	ch3 = channels[2];
+
+
+	depthImage.copyTo(ch1(what));
+	depthImage.copyTo(ch2(what));
+	depthImage.copyTo(ch3(what));
+
+	cv::merge(channels, totalRep);
+
+	std::cout << "Total Rep info " << totalRep.rows << std::endl;
 	StaticImageLogging::grabScreenshot(totalRep, "SlamResult/TotalRep_" + std::to_string(frameTracker) + "--");
 	//totalRepVideoWriter.write(totalRep);
 
