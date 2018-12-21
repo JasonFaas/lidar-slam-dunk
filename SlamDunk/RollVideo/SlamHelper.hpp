@@ -28,7 +28,8 @@ class SlamHelper
 		void drawNewRobotLocation();
 
 		const cv::Size TOTAL_REP_SIZE = cv::Size(1920 / 2 + 200, 1080 / 2);
-		cv::Mat totalRep = cv::Mat(TOTAL_REP_SIZE, CV_8UC3, cv::Scalar(0, 0, 0));
+		cv::Mat totalRepSO = cv::Mat(TOTAL_REP_SIZE, CV_8UC3, cv::Scalar(0, 0, 0));
+		cv::Mat totalRepFov = cv::Mat(TOTAL_REP_SIZE, CV_8UC3, cv::Scalar(0, 0, 0));
 
 		int featureNameIterator = 1;
 		int frameTracker = 0;
@@ -46,4 +47,6 @@ class SlamHelper
 		cv::Point getRobotEstimate(int historySize, int offset);
 
 		cv::VideoWriter totalRepVideoWriter;
+
+		void copyDepthImageToTotalRepSO(cv::Mat& depthImage);
 };

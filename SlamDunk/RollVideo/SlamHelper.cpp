@@ -104,39 +104,21 @@ SlamHelper::depthTo2D(cv::Mat& depthImage)
 	return returnImg;
 }
 
-//cv::Mat
-//SlamHelper::depthTo2DimAdjustedv1(cv::Mat& depthImage)
-//{
-//	cv::Mat returnImg = cv::Mat(255, depthImage.cols, CV_8UC1, cv::Scalar(0));
-//
-//	int rowOfInterest = depthImage.rows / 2;
-//	Concurrency::parallel_for(0, depthImage.cols, 1, [&](int n) {
-//		double depthAtROI = depthImage.at<uchar>(rowOfInterest, n);
-//		double angleToCos = abs(90.0 - 55.0 - ((double)n) / 7.252);
-//		double valueToSet = depthAtROI * cos(angleToCos * PI / 180.0);
-//		//std::cout << "what:\t" << (int)depthAtROI << "\tmorewhat:\t" << (int)angleToCos << "\tmorewhat:\t" << (int)valueToSet << std::endl;
-//		returnImg.at<uchar>((int)std::round(valueToSet), n) = 255;
-//	});
-//
-//	return returnImg;
-//}
-
 cv::Mat
-SlamHelper::depthTo2DimAdjusted(cv::Mat& depthImage) //v2 to fov
+SlamHelper::depthTo2DimAdjusted(cv::Mat& depthImageBlurred) //v2 to fov
 {
-	cv::Mat returnImg = cv::Mat(255, depthImage.cols, CV_8UC1, cv::Scalar(0));
+	cv::Mat returnImg = cv::Mat(255, depthImageBlurred.cols, CV_8UC1, cv::Scalar(0));
 
-	int rowOfInterest = depthImage.rows / 2;
-	Concurrency::parallel_for(0, depthImage.cols, 1, [&](int n) {
-		double depthAtROI = depthImage.at<uchar>(rowOfInterest, n);
-		double valueToSet = depthAtROI;
-		//std::cout << "what:\t" << (int)depthAtROI << "\tmorewhat:\t" << (int)angleToCos << "\tmorewhat:\t" << (int)valueToSet << std::endl;
-		//returnImg.at<uchar>(255 - (int)std::round(valueToSet), n) = 255;
-		float fx = 365.456f / 1.8;
-		//float fx = 150.456f;
-		returnImg.at<uchar>((int)std::round(valueToSet), (int)std::round(((double)n)*(valueToSet)/fx)) = 255;
-		//returnImg.at<uchar>((int)std::round(valueToSet), 50+(int)std::round(((double)n)*(valueToSet+255/1.8)/fx)) = 255;
-	});
+	int rowOfInterest = depthImageBlurred.rows / 2;
+	for (int i = 0; i < depthImageBlurred.cols; i++) {
+		int columnToSet, rowToSet;
+		int column = i; 
+		double depth = depthImageBlurred.at<uchar>(rowOfInterest, column);
+		std::tie(columnToSet, rowToSet) = SimpleStaticCalc::getFovPoint(column, depth);
+
+		
+		returnImg.at<uchar>(columnToSet, rowToSet) = 255;
+	};
 
 	return returnImg;
 }
@@ -148,7 +130,7 @@ SlamHelper::linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage)
 
 	// Place original robot location on totalRep
 	if (frameTracker == 1)
-		cv::circle(totalRep, cv::Point(TOTAL_X_OFFSET + SimpleStaticCalc::ROBOT_POS_X, TOTAL_Y_OFFSET + SimpleStaticCalc::ROBOT_POS_Y), 4, cv::Scalar(100, 50, 255), -1);
+		cv::circle(totalRepSO, cv::Point(TOTAL_X_OFFSET + SimpleStaticCalc::ROBOT_POS_X, TOTAL_Y_OFFSET + SimpleStaticCalc::ROBOT_POS_Y), 4, cv::Scalar(100, 50, 255), -1);
 
 	cv::Mat depthCopy;
 	cv::Mat overheadCopy;
@@ -158,37 +140,38 @@ SlamHelper::linesOnCommonFeatures(cv::Mat& depthImage, cv::Mat& overheadImage)
 	linkExistingToNewFeatures(depthImage);
 	drawLotsOfFeaturesV1(overheadCopy, depthCopy);
 
-	//std::cout << "Feature Count:\t" << existingFeatures.size() << std::endl;
+	copyDepthImageToTotalRepSO(depthImage);
+
 	cv::namedWindow("Overhead Extra");
 	imshow("Overhead Extra", overheadCopy);
 	cv::namedWindow("Depth Extra");
 	imshow("Depth Extra", depthCopy);
-	cv::namedWindow("Full Representation");
-	imshow("Full Representation", totalRep);
+	cv::namedWindow("Full Representation Straight On");
+	imshow("Full Representation Straight On", totalRepSO);
+	cv::namedWindow("Full Representation FOV");
+	imshow("Full Representation FOV", totalRepFov);
 
-//	depthImage.copyTo(totalRep(cv::Rect(totalRep.cols - depthImage.cols, totalRep.rows - depthImage.rows, depthImage.cols, depthImage.rows)));
-	//cv::Rect what = cv::Rect(0, 0, depthImage.cols, depthImage.rows);
-	cv::Rect what = cv::Rect(totalRep.cols - depthImage.cols - 10, (totalRep.rows - depthImage.rows) / 2, depthImage.cols, depthImage.rows);
+	StaticImageLogging::grabScreenshot(totalRepSO, "SlamResult/TotalRep_" + std::to_string(frameTracker) + "--");
+	//totalRepVideoWriter.write(totalRep);
+
+	return depthCopy;
+}
+
+void 
+SlamHelper::copyDepthImageToTotalRepSO(cv::Mat& depthImage)
+{
+	cv::Rect what = cv::Rect(totalRepSO.cols - depthImage.cols - 10, (totalRepSO.rows - depthImage.rows) / 2, depthImage.cols, depthImage.rows);
 	std::vector<cv::Mat> channels(3);
-	cv::split(totalRep, channels);
+	cv::split(totalRepSO, channels);
 	cv::Mat ch1, ch2, ch3;
 	ch1 = channels[0];
 	ch2 = channels[1];
 	ch3 = channels[2];
 
-
 	depthImage.copyTo(ch1(what));
 	depthImage.copyTo(ch2(what));
 	depthImage.copyTo(ch3(what));
-
-	cv::merge(channels, totalRep);
-
-	std::cout << "Total Rep info " << totalRep.rows << std::endl;
-	StaticImageLogging::grabScreenshot(totalRep, "SlamResult/TotalRep_" + std::to_string(frameTracker) + "--");
-	//totalRepVideoWriter.write(totalRep);
-
-
-	return depthCopy;
+	cv::merge(channels, totalRepSO);
 }
 
 void
@@ -254,7 +237,6 @@ SlamHelper::linkExistingToNewFeatures(cv::Mat& depthImageRO)
 			currentDepthRef = currentStartDepth;
 		}
 	}
-
 	std::cout << "Existing feature in current:\t" << existingFeaturesInCurrent.size() << std::endl;
 	if (existingFeaturesInCurrent.size() == 0 && frameTracker > 1)
 		std::cout << "\t!!!Existing feature in current count is ZERO!!!" << std::endl;
@@ -286,7 +268,6 @@ SlamHelper::linkExistingToNewFeatures(cv::Mat& depthImageRO)
 				continue;
 			}
 		}
-
 		if (newFeatureFrameOneStartIdeasX.size() == 0)
 		{
 			if (frameTracker > 1)
@@ -303,6 +284,7 @@ SlamHelper::linkExistingToNewFeatures(cv::Mat& depthImageRO)
 				df.updateFrameOnePoints(finalStartGuess, finalEndGuess);
 		});
 	}
+
 	whichExistingFeaturesDoNotHaveFrameOnePoints();
 }
 
@@ -335,7 +317,13 @@ SlamHelper::drawLotsOfFeaturesV1(cv::Mat& overheadCopy, cv::Mat& depthCopy)
 			{
 				// Full Representation
 				int totalLineColor = 120 + frameTracker * 15 % (250 - 120);
-				cv::line(totalRep, cv::Point(startPoint.x + TOTAL_X_OFFSET, startPoint.y + TOTAL_Y_OFFSET), cv::Point(endPoint.x + TOTAL_X_OFFSET, endPoint.y + TOTAL_Y_OFFSET), cv::Scalar(totalLineColor, totalLineColor, totalLineColor), 3, 8, 0);
+				cv::line(totalRepSO, cv::Point(startPoint.x + TOTAL_X_OFFSET, startPoint.y + TOTAL_Y_OFFSET), cv::Point(endPoint.x + TOTAL_X_OFFSET, endPoint.y + TOTAL_Y_OFFSET), cv::Scalar(totalLineColor, totalLineColor, totalLineColor), 3, 8, 0);
+
+				int fovStartX, fovStartY, fovEndX, fovEndY;
+				std::tie(fovStartY, fovStartX) = SimpleStaticCalc::getFovPoint(startPoint.x, startPoint.y);
+				std::tie(fovEndY, fovEndX) = SimpleStaticCalc::getFovPoint(endPoint.x, endPoint.y);
+				cv::line(totalRepFov, cv::Point(fovStartX + TOTAL_X_OFFSET, fovStartY + TOTAL_Y_OFFSET), cv::Point(fovEndX + TOTAL_X_OFFSET, fovEndY + TOTAL_Y_OFFSET), cv::Scalar(totalLineColor, totalLineColor, totalLineColor), 3, 8, 0);
+
 			}
 		}
 		catch (std::invalid_argument e) {
@@ -416,7 +404,7 @@ SlamHelper::drawNewRobotLocation()
 		cv::cvtColor(hsv, rgb, CV_HSV2BGR);
 		cv::Scalar newScalar(rgb.data[0], rgb.data[1], rgb.data[2]);
 
-		cv::circle(totalRep, robotEstimation, 4, newScalar, -1);
+		cv::circle(totalRepSO, robotEstimation, 4, newScalar, -1);
 
 		robotHistory.push_back(robotEstimation);
 
@@ -424,7 +412,7 @@ SlamHelper::drawNewRobotLocation()
 		if (robotHistory.size() % 5 == 0 && robotHistory.size() >= 10) {
 			cv::Point startPoint = getRobotEstimate(-5*2, -5);
 			cv::Point endPoint = getRobotEstimate(-5, 0);
-			cv::line(totalRep, startPoint, endPoint, cv::Scalar(255, 255, 255), 6);
+			cv::line(totalRepSO, startPoint, endPoint, cv::Scalar(255, 255, 255), 6);
 		}
 		
 	}

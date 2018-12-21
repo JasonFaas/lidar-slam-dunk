@@ -7,11 +7,10 @@
 class StaticImageLogging
 {
 	public:
-		static constexpr const char* DEV_DIRECTORY = "C:/Users/jason/Desktop/Code/lidar-slam-dunk/local_resources/";
 
 		static void grabScreenshot(cv::Mat colorScreen, std::string type);
 		static void getDateTime(char* buffer);
 		static std::string recordingFileName(std::string type);
 	private:
-
+		static std::string getDevDirectory();
 };

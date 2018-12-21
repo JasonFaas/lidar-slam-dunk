@@ -468,3 +468,17 @@ SimpleStaticCalc::get3rdPointLocationFrom2PointsAndAngles(cv::Point& startPoint,
 
 	return returnPointRotated;
 }
+
+
+
+std::tuple<int, int>
+SimpleStaticCalc::getFovPoint(int column, double depth)
+{
+	int columnToSet, rowToSet;
+
+	float fx = 365.456f / 1.8;
+	columnToSet = (int)std::round(depth);
+	rowToSet = (int)std::round(((double)column)*(depth) / fx);
+
+	return std::make_tuple(columnToSet, rowToSet);
+}
